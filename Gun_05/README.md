@@ -87,10 +87,16 @@ Bu bilgiler sayesinde veri akışının devam edip etmediği ve frame'lerin sır
 Geliştirme tamamlandıktan sonra proje farklı seviyelerde test edildi.
 
 Aşağıdaki kontroller başarıyla gerçekleştirildi:
-
-<img width="1915" height="975" alt="image" src="https://github.com/user-attachments/assets/f85eb077-bdb9-42b6-b7b2-f62242ea1ed7" />
-
 ```text
 npm run build
 npm run lint
 npx tsc --noEmit
+```
+gorseller :
+
+<img width="1917" height="1020" alt="image" src="https://github.com/user-attachments/assets/8e157c4f-bd10-446c-8688-97f9f3369997" />
+
+
+<img width="1915" height="975" alt="image" src="https://github.com/user-attachments/assets/f85eb077-bdb9-42b6-b7b2-f62242ea1ed7" />
+
+
