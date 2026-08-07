@@ -1,34 +1,36 @@
 # Gün 05 - Günlük Çalışma Raporu
 
 **Tarih:** 7 Ağustos 2026  
-**Konu:** Telemetri Simülatörünün Gerçekleştirilmesi ve Canlı Dashboard Entegrasyonu
+**Konu:** Telemetri Simülatörünün Geliştirilmesi ve Canlı Dashboard Entegrasyonu
 
 ---
 
-# Günün Özeti
+## 📌 Günün Özeti
 
-Stajın beşinci gününde SpikeEdge Telemetry projesinde daha önce oluşturulan sistem mimarisi çalışır hale getirildi. Önceki günlerde hazırlanan `PlantModel` ve telemetri veri yapıları kullanılarak gerçek zamanlı veri üreten deterministik bir simulator geliştirildi.
+Stajın beşinci gününde SpikeEdge Telemetry projesinin daha önce oluşturulan temel mimarisi üzerinde çalışılarak telemetri sisteminin ilk çalışan prototipi geliştirildi.
 
-Simulator tarafından üretilen telemetri verileri dashboard tarafına aktarılmış ve kullanıcı arayüzünde canlı olarak gösterilmiştir. Böylece proje statik bir arayüzden çıkarılarak sürekli veri üreten ve bu verileri görüntüleyen çalışan bir prototip haline getirilmiştir.
+Önceki günlerde hazırlanan `PlantModel` ve telemetri veri yapıları kullanılarak deterministik çalışan bir simulator geliştirildi. Simulator tarafından üretilen veriler dashboard'a aktarılmış ve gerçek zamanlı olarak kullanıcı arayüzünde görüntülenmesi sağlandı.
+
+Böylece proje yalnızca statik bir arayüz olmaktan çıkarılarak sürekli telemetri verisi üreten ve bu verileri görüntüleyen çalışan bir yapıya dönüştürüldü.
 
 ---
 
-# Yapılan Çalışmalar
+## 🛠️ Yapılan Çalışmalar
 
-## 1. Telemetri Simulatorünün Geliştirilmesi
+### 1. Telemetri Simulatorünün Geliştirilmesi
 
-Önceki günlerde oluşturulan `PlantModel` kullanılarak `Simulator` yapısı çalışır hale getirildi.
+Önceki günlerde hazırlanan `PlantModel` kullanılarak `Simulator` yapısının temel çalışma mantığı tamamlandı.
 
-Simulator;
+Simulator tarafından;
 
-- Telemetri frame'leri üretmektedir.
-- Her frame için sequence numarası oluşturmaktadır.
-- Zaman bilgisini üretmektedir.
-- `PlantModel` tarafından hesaplanan kanal değerlerini kullanmaktadır.
-- Telemetri değerlerini tanımlanan sınırlar içerisinde tutmaktadır.
-- Deterministik çalışmaktadır.
+- Telemetri frame'leri oluşturuldu.
+- Her frame için sequence numarası üretildi.
+- Timestamp bilgisi eklendi.
+- `PlantModel` tarafından hesaplanan değerler kullanıldı.
+- Kanal değerlerinin belirlenen sınırlar içerisinde kalması sağlandı.
+- Deterministik veri üretimi korundu.
 
-Üretilen temel kanallar:
+Simulator içerisinde kullanılan temel telemetri kanalları:
 
 - Core Temperature
 - Ambient Temperature
@@ -39,64 +41,64 @@ Simulator;
 
 ---
 
-## 2. Canlı Telemetri Akışının Oluşturulması
+### 2. Canlı Telemetri Akışının Oluşturulması
 
-Simulator 10 Hz örnekleme frekansı ile çalışacak şekilde yapılandırıldı.
+Simulator, **10 Hz** örnekleme frekansı ile çalışacak şekilde yapılandırıldı.
 
-Böylece yaklaşık her 100 ms'de bir yeni telemetri frame'i oluşturulmaktadır.
+Bu yapı sayesinde yaklaşık her **100 ms** içerisinde yeni bir telemetri frame'i oluşturulmaktadır.
 
-Üretilen veriler içerisinde sequence numarası ve timestamp bilgileri de tutulmaktadır.
-
-Bu yapı ilerleyen aşamalarda WebSocket veya başka bir gerçek zamanlı veri kaynağı ile değiştirilebilecek şekilde modüler olarak tasarlanmıştır.
-
----
-
-## 3. Dashboard Entegrasyonu
-
-Simulator tarafından üretilen telemetri verileri mevcut dashboard yapısına bağlandı.
-
-Dashboard üzerinde aşağıdaki değerler canlı olarak görüntülenmektedir:
-
-- Core Temperature
-- Ambient Temperature
-- Voltage
-- Current
-- Fan RPM
-- CPU Load
-
-Değerler simulator çalıştığı sürece otomatik olarak güncellenmektedir.
-
----
-
-## 4. Telemetri Frame Takibi
-
-Dashboard'a ek olarak telemetri akışının takip edilebilmesi için;
+Her frame içerisinde;
 
 - Sequence
-- Frame Time
-- Frames Received
+- Timestamp
+- Telemetry Channels
 
-bilgileri de gösterilmektedir.
+bilgileri bulunmaktadır.
 
-Bu bilgiler sayesinde veri akışının devam edip etmediği ve frame'lerin sıralı şekilde alınıp alınmadığı kontrol edilebilmektedir.
+Ayrıca oluşturulan yapı ilerleyen aşamalarda WebSocket gibi gerçek zamanlı iletişim yöntemleriyle kullanılabilecek şekilde modüler tutuldu.
 
 ---
 
-## 5. Sistem Testleri
+### 3. Dashboard Entegrasyonu
 
-Geliştirme tamamlandıktan sonra proje farklı seviyelerde test edildi.
+Simulator tarafından üretilen telemetri verileri dashboard ile entegre edildi.
 
-Aşağıdaki kontroller başarıyla gerçekleştirildi:
-```text
+Dashboard üzerinde aşağıdaki değerler canlı olarak gösterilmektedir:
+
+| Telemetri | Birim |
+|---|---|
+| Core Temperature | °C |
+| Ambient Temperature | °C |
+| Voltage | V |
+| Current | A |
+| Fan RPM | rpm |
+| CPU Load | % |
+
+Simulator çalıştığı sürece bu değerler otomatik olarak güncellenmektedir.
+
+---
+
+### 4. Telemetri Akışının Takip Edilmesi
+
+Veri akışının durumunu daha kolay takip edebilmek için dashboard'a ek bilgiler de eklendi.
+
+Bu bilgiler:
+
+- **Sequence:** Son alınan frame'in sıra numarası
+- **Frame Time:** Son frame'in zaman bilgisi
+- **Frames Received:** Alınan toplam frame sayısı
+
+Bu değerler sayesinde telemetri akışının devamlılığı ve frame'lerin sıralı şekilde alınması kontrol edilebilmektedir.
+
+---
+
+## 🧪 Sistem Testleri
+
+Geliştirme tamamlandıktan sonra sistemin çalışabilirliği farklı kontroller ile doğrulandı.
+
+Aşağıdaki komutlar başarıyla çalıştırıldı:
+
+```bash
 npm run build
 npm run lint
 npx tsc --noEmit
-```
-gorseller :
-
-<img width="1917" height="1020" alt="image" src="https://github.com/user-attachments/assets/8e157c4f-bd10-446c-8688-97f9f3369997" />
-
-
-<img width="1915" height="975" alt="image" src="https://github.com/user-attachments/assets/f85eb077-bdb9-42b6-b7b2-f62242ea1ed7" />
-
-
