@@ -3,6 +3,10 @@
 **Tarih:** 7 Ağustos 2026  
 **Konu:** Telemetri Simülatörünün Geliştirilmesi ve Canlı Dashboard Entegrasyonu
 
+<img width="1917" height="1020" alt="image" src="https://github.com/user-attachments/assets/cd1883fb-eb15-4d44-a219-a8224fd3d840" />
+<br>
+<img width="1917" height="977" alt="image" src="https://github.com/user-attachments/assets/9df5f550-c547-4535-956e-ad576ed237f4" />
+
 ---
 
 ## 📌 Günün Özeti
