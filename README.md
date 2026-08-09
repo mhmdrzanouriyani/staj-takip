@@ -4,13 +4,14 @@ Bu depo, SpikeEdge Telemetry projesi kapsamında gerçekleştirilen günlük sta
 
 ## 📅 Günlük Çalışma Raporları
 
-| 📅 Gün | 📝 Konu | 📌 Durum |
-|:------:|--------|:--------:|
-| **Gün 01** | Proje Analizi ve Geliştirme Ortamının Hazırlanması | ✅ Tamamlandı |
-| **Gün 02** | Proje Altyapısı ve Dashboard Mimarisi | ✅ Tamamlandı |
-| **Gün 03** | Telemetry Veri Modeli ve Simulator Altyapısı | ✅ Tamamlandı |
-| **Gün 04** | Plant Model Geliştirilmesi ve Sistem Testleri | ✅ Tamamlandı |
+|   📅 Gün   | 📝 Konu                                                                |   📌 Durum   |
+| :--------: | ---------------------------------------------------------------------- | :----------: |
+| **Gün 01** | Proje Analizi ve Geliştirme Ortamının Hazırlanması                     | ✅ Tamamlandı |
+| **Gün 02** | Proje Altyapısı ve Dashboard Mimarisi                                  | ✅ Tamamlandı |
+| **Gün 03** | Telemetry Veri Modeli ve Simulator Altyapısı                           | ✅ Tamamlandı |
+| **Gün 04** | Plant Model Geliştirilmesi ve Sistem Testleri                          | ✅ Tamamlandı |
 | **Gün 05** | Telemetri Simulatorünün Geliştirilmesi ve Canlı Dashboard Entegrasyonu | ✅ Tamamlandı |
+| **Gün 06** | Canlı Telemetri Grafikleri ve Telemetri Veri Akışının Geliştirilmesi   | ✅ Tamamlandı |
 
 ---
 
@@ -33,5 +34,8 @@ staj-takip/
 ├── 📁 Gun_04/
 │   └── 📄 README.md
 │
-└── 📁 Gun_05/
+├── 📁 Gun_05/
+│   └── 📄 README.md
+│
+└── 📁 Gun_06/
     └── 📄 README.md
