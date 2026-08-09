@@ -16,6 +16,8 @@ Ayrıca telemetri kaynağını simulator uygulamasından bağımsız hale getirm
 Günün sonunda dashboard üzerinde sıcaklık, sistem ve güç değerlerini gösteren canlı grafikler başarıyla çalışır hale getirildi.
 
 ---
+<img width="1917" height="972" alt="image" src="https://github.com/user-attachments/assets/ad3255f6-b559-489c-9366-7b091d9dfd20" />
+
 
 ## 🛠️ Yapılan Çalışmalar
 
@@ -50,4 +52,3 @@ start()
 stop()
 subscribe()
 
-<img width="1917" height="972" alt="image" src="https://github.com/user-attachments/assets/ad3255f6-b559-489c-9366-7b091d9dfd20" />
