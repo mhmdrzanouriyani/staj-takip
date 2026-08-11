@@ -86,11 +86,6 @@ active: F2-voltage-sag
 
 Voltage değerindeki düşüş Power grafiği üzerinden de takip edildi.
 
-#### 📸 F2 - Voltage Sag Testi
-
-**Ekran görüntüsü:** Ayrı olarak `day08-f2-voltage-sag.png` adıyla yüklenecektir.
-
----
 
 ### 5. Current Surge
 
@@ -107,11 +102,6 @@ faults: on
 active: F3-current-surge
 ```
 
-#### 📸 F3 - Current Surge Testi
-
-**Ekran görüntüsü:** Ayrı olarak `day08-f3-current-surge.png` adıyla yüklenecektir.
-
----
 
 ### 6. Fan Degradation
 
@@ -198,7 +188,6 @@ Bu bilgiler sayesinde test sırasında fault senaryosunun hangi aşamada olduğu
 
 ---
 
-## 📸 Normal Telemetry Baseline
 
 Fault senaryolarını karşılaştırabilmek amacıyla normal telemetry akışı da kontrol edildi.
 
@@ -214,7 +203,6 @@ Normal baseline sırasında dashboard üzerinde:
 
 değerlerinin normal çalışma aralığında üretildiği doğrulandı.
 
-**Ekran görüntüsü:** Ayrı olarak `day08-normal-baseline.png` adıyla yüklenecektir.
 
 ---
 
@@ -263,7 +251,6 @@ F2-voltage-sag
 
 olarak görüntülendi.
 
-![Day 08 - Voltage Sag](./day08-f2-voltage-sag.png)
 
 ---
 
@@ -277,7 +264,6 @@ Test sırasında yaklaşık `2.84 A` seviyesinde current değeri gözlemlendi.
 
 Power grafiğinde current kanalındaki artış doğrulandı.
 
-![Day 08 - Current Surge](./day08-f3-current-surge.png)
 
 ---
 
