@@ -1,186 +1,459 @@
-# 📘 SpikeEdge Telemetry - Staj Takibi
+📊 GÜN 11 - GÜNLÜK ÇALIŞMA RAPORU
 
-Bu depo, SpikeEdge Telemetry projesi kapsamında gerçekleştirilen günlük staj çalışmalarını düzenli olarak belgelemek amacıyla oluşturulmuştur.
+Tarih: 13 Ağustos 2026
+Konu: WebSocket Sunucusu ve Gerçek Zamanlı Telemetri Yayını
 
-Proje boyunca telemetry simulator, dashboard, workload profilleri, deterministic simulation, noise pipeline, fault injection, ground-truth ve labeled dataset altyapısı gibi bileşenler geliştirilmekte ve test edilmektedir.
+============================================================
+1. GÜNÜN ÖZETİ
+============================================================
 
----
+Stajın on birinci gününde SpikeEdge Telemetry projesine gerçek zamanlı
+telemetry verilerinin WebSocket üzerinden yayınlanmasını sağlayan bir
+taşıma katmanı eklenmiştir.
 
-## 📅 Günlük Çalışma Raporları
+Bu çalışmanın temel amacı mevcut telemetry üretim altyapısını değiştirmeden,
+üretilen TelemetryFrame verilerini bağımsız bir WebSocket sunucusu üzerinden
+birden fazla istemciye gerçek zamanlı olarak ulaştırmaktır.
 
-| 📅 Gün | 📝 Konu | 📌 Durum |
-| :---: | :--- | :---: |
-| **Gün 01** | Proje Analizi ve Geliştirme Ortamının Hazırlanması | ✅ Tamamlandı |
-| **Gün 02** | Proje Altyapısı ve Dashboard Mimarisi | ✅ Tamamlandı |
-| **Gün 03** | Telemetry Veri Modeli ve Simulator Altyapısı | ✅ Tamamlandı |
-| **Gün 04** | Plant Model Geliştirilmesi ve Sistem Testleri | ✅ Tamamlandı |
-| **Gün 05** | Telemetri Simulatorünün Geliştirilmesi ve Canlı Dashboard Entegrasyonu | ✅ Tamamlandı |
-| **Gün 06** | Canlı Telemetri Grafikleri ve Telemetri Veri Akışının Geliştirilmesi | ✅ Tamamlandı |
-| **Gün 07** | Telemetri Yük Profilleri, Deterministik Gürültü ve Simülasyon Testleri | ✅ Tamamlandı |
-| **Gün 08** | Fault Injection, Ground Truth ve Arıza Senaryolarının Simülasyonu | ✅ Tamamlandı |
-| **Gün 09** | Telemetri Dataset Oluşturma, Etiketleme ve CSV Export | ✅ Tamamlandı |
-| **Gün 10** | Veri Seti Doğrulama, Dağılım Analizi ve Korelasyon Matrisi | ✅ Tamamlandı |
+Day 08, Day 09 ve Day 10 çalışmalarında geliştirilen FaultEngine,
+GroundTruth, DatasetRecorder, CSV dataset ve dataset validation yapıları
+değiştirilmemiştir.
 
----
+Aynı şekilde mevcut dashboard pipeline'ı da bu aşamada değiştirilmemiştir.
 
-## 📂 Rapor Yapısı
+Bu nedenle Day 11 çalışması yeni bir telemetry üretim sistemi oluşturmak
+yerine mevcut Simulator altyapısının dış dünyaya aktarılmasını sağlayan
+bir transport layer olarak tasarlanmıştır.
 
-Her klasör ilgili günün ayrıntılı çalışma raporunu ve o güne ait gerekli çıktıları içermektedir.
 
-```text
-staj-takip/
-│
-├── 📁 Gun_01/
-│   └── 📄 README.md
-│
-├── 📁 Gun_02/
-│   └── 📄 README.md
-│
-├── 📁 Gun_03/
-│   └── 📄 README.md
-│
-├── 📁 Gun_04/
-│   └── 📄 README.md
-│
-├── 📁 Gun_05/
-│   └── 📄 README.md
-│
-├── 📁 Gun_06/
-│   └── 📄 README.md
-│
-├── 📁 Gun_07/
-│   ├── 📄 README.md
-│   ├── 🖼️ day07-idle.png
-│   ├── 🖼️ day07-variable.png
-│   └── 🖼️ day07-sustained.png
-│
-├── 📁 Gun_08/
-│   ├── 📄 README.md
-│   ├── 🖼️ day08-normal-baseline.png
-│   ├── 🖼️ day08-f1-temperature-spike.png
-│   ├── 🖼️ day08-f2-voltage-sag.png
-│   ├── 🖼️ day08-f3-current-surge.png
-│   ├── 🖼️ day08-f4-fan-degradation.png
-│   └── 🖼️ day08-f5-sensor-drift.png
-│
-├── 📁 Gun_09/
-│   └── 📄 README.md
-│
-├── 📁 Gun_10/
-│   └── 📄 README.md
-│
-├── 📁 data/
-│   ├── 📊 day09-normal.csv
-│   └── 📊 day09-faults.csv
-│
-├── 📁 docs/
-│   ├── 📄 dataset-report.md
-│   └── 📁 dataset/
-│       ├── 📊 correlation-matrix.svg
-│       ├── 📊 distribution-power.svg
-│       ├── 📊 distribution-system.svg
-│       └── 📊 distribution-temperature.svg
-│
-└── 📄 README.md
-```
+============================================================
+2. TEMEL AMAÇ
+============================================================
 
----
+Day 11 kapsamında aşağıdaki hedefler gerçekleştirilmiştir:
 
-## 📊 Proje Gelişim Süreci
+- Mevcut Simulator yapısını yeniden kullanmak
+- İkinci bir simulator oluşturmamak
+- TelemetryFrame verilerini WebSocket üzerinden yayınlamak
+- Birden fazla istemcinin aynı telemetry akışına bağlanabilmesini sağlamak
+- Tüm istemcilere aynı telemetry frame'ini göndermek
+- Telemetry yayın frekansını 10 Hz olarak korumak
+- Client bağlantısı kesildiğinde diğer client'ların yayınını etkilememek
+- Yeni bağlantıların mevcut telemetry sequence akışını bozmamasını sağlamak
+- WebSocket katmanını dashboard'dan bağımsız bir process olarak çalıştırmak
 
-### 🔹 Gün 01 — Proje Analizi
 
-İlk gün SpikeEdge Telemetry projesinin genel yapısı incelendi ve geliştirme ortamı hazırlandı.
+============================================================
+3. MİMARİ YAKLAŞIM
+============================================================
 
-Projenin amacı, embedded sistemlerden alınabilecek telemetry verilerinin tarayıcı üzerinde gerçek zamanlı olarak izlenebileceği bir monitoring paneli oluşturmaktır.
+Day 11'de yeni bir Simulator oluşturulmamıştır.
 
----
+Mevcut mimari tekrar kullanılmıştır:
 
-### 🔹 Gün 02 — Dashboard Mimarisi
+Simulator
+    ↓
+SimulatorTelemetrySource
+    ↓
+FrameScheduler
+    ↓
+TelemetryFrame
+    ↓
+TelemetryWebSocketServer
+    ↓
+WebSocket Clients
 
-Dashboard'ın temel frontend mimarisi oluşturuldu.
 
-Telemetry değerlerinin kullanıcıya kartlar ve monitoring bileşenleri üzerinden gösterilebilmesi için temel dashboard yapısı geliştirildi.
+WebSocket katmanı yalnızca taşıma görevini üstlenmektedir.
 
----
+Telemetry verisinin nasıl üretileceği Simulator tarafından belirlenir.
+WebSocket sunucusu ise bu veriyi bağlı istemcilere yayınlar.
 
-### 🔹 Gün 03 — Telemetry Veri Modeli ve Simulator
+Bu ayrım sayesinde telemetry üretim mantığı ile network transport
+mantığı birbirinden ayrılmıştır.
 
-Telemetry veri modeli ve simulator altyapısının temel yapısı oluşturuldu.
 
-Simulator üzerinden sıcaklık, voltaj, akım, fan RPM ve CPU Load gibi telemetry kanallarının üretilmesi sağlandı.
+============================================================
+4. EKLENEN DOSYALAR
+============================================================
 
----
+Day 11 kapsamında aşağıdaki dosyalar oluşturulmuştur:
 
-### 🔹 Gün 04 — Plant Model
+server/telemetry-ws.js
+    Bağımsız Node.js WebSocket server giriş noktasıdır.
 
-Telemetry kanalları arasındaki fiziksel ilişkileri temsil etmek amacıyla Plant Model geliştirildi.
+src/lib/ws/TelemetryWebSocketServer.ts
+    WebSocket yayın mantığını ve bağlı istemcilere broadcast işlemini
+    gerçekleştiren temel server katmanıdır.
 
-CPU Load değişiminin sıcaklık, fan RPM, current ve voltage gibi diğer telemetry kanallarına etkisinin modellenmesi sağlandı.
+src/lib/ws/day11SelfTest.ts
+    Day 11 WebSocket davranışlarını otomatik olarak test eden self-test
+    altyapısıdır.
 
----
+scripts/run-day11-self-test.ts
+    Day 11 self-test komutunun çalıştırılmasını sağlayan script dosyasıdır.
 
-### 🔹 Gün 05 — Telemetry Simulator
+Gun_11/README.md
+    Günlük staj raporunun GitHub üzerinde tutulduğu dosyadır.
 
-Simulator daha gelişmiş hale getirildi ve canlı dashboard ile entegre edildi.
 
-Telemetry değerlerinin belirli sample rate ile sürekli olarak üretilmesi ve dashboard üzerinde görüntülenmesi sağlandı.
+============================================================
+5. WEBSOCKET SERVER
+============================================================
 
----
+WebSocket server bağımsız bir Node.js process olarak yapılandırılmıştır.
 
-### 🔹 Gün 06 — Live Telemetry Charts
+Çalıştırmak için:
 
-Canlı telemetry veri akışı ve SVG tabanlı grafikler geliştirildi.
+npm run server:telemetry
 
-Temperature, System ve Power bölümleri üzerinden telemetry değerlerinin zaman içerisindeki değişimleri görselleştirildi.
+Alternatif olarak:
 
-Dashboard üzerinde aşağıdaki kanalların canlı olarak izlenmesi sağlandı:
+node server/telemetry-ws.js
 
-- Core Temperature
-- Ambient Temperature
-- Voltage
-- Current
-- Fan RPM
-- CPU Load
 
----
+Server başarılı şekilde başlatıldığında aşağıdaki mesajlar görülmektedir:
 
-### 🔹 Gün 07 — Workload Profiles ve Deterministic Simulation
+[WS] Server started on port 8787
+[WS] Telemetry stream: 10 Hz
 
-Yedinci günde simulator içerisine farklı sistem çalışma koşullarını temsil eden workload profilleri eklendi.
 
-Üç farklı profil oluşturuldu:
+Server varsayılan olarak aşağıdaki adreste çalışmaktadır:
 
-- `idle`
-- `variable`
-- `sustained`
+ws://127.0.0.1:8787
 
-Ayrıca seeded random mekanizması ve Noise Pipeline geliştirildi.
 
-Kullanılan temel seed değeri:
+Port değeri WS_PORT environment variable kullanılarak değiştirilebilir.
 
-```text
-1337
-```
 
-Noise Pipeline içerisinde drift, jitter, outlier kontrolü ve quantization gibi işlemler kullanıldı.
+============================================================
+6. PORT TASARIMI
+============================================================
 
-Bu yapı sayesinde simulator verilerinin daha gerçekçi ve tekrar üretilebilir olması sağlandı.
+WebSocket server için 8787 portu kullanılmıştır.
 
-Day 07 sonunda farklı workload profilleri dashboard üzerinde test edildi ve TypeScript, ESLint ve production build kontrolleri başarıyla tamamlandı.
+Next.js uygulaması ise mevcut 3000 portunda çalışmaya devam etmektedir.
 
----
+Bu iki process'in farklı portlarda tutulmasının amacı frontend uygulaması
+ile telemetry transport katmanının birbirinden ayrılmasıdır.
 
-### 🔹 Gün 08 — Fault Injection ve Ground Truth
+Varsayılan yapı:
 
-Sekizinci günde mevcut telemetry simulator altyapısı kontrollü arıza senaryolarını destekleyecek şekilde geliştirildi.
+Next.js Dashboard
+    → http://localhost:3000
 
-Simulator pipeline içerisine bağımsız bir `FaultEngine` katmanı eklendi.
+Telemetry WebSocket
+    → ws://127.0.0.1:8787
 
-Pipeline şu şekilde yapılandırıldı:
 
-```text
+============================================================
+7. TELEMETRY FREKANSI
+============================================================
+
+Telemetry yayın frekansı 10 Hz olarak belirlenmiştir.
+
+10 Hz:
+
+1 saniyede yaklaşık 10 telemetry frame
+100 ms'de yaklaşık 1 frame
+
+Bu nedenle WebSocket server yaklaşık her 100 ms'de bir telemetry frame
+üretip bağlı istemcilere yayınlamaktadır.
+
+60 FPS gibi bir görsel render frekansı kullanılmamıştır.
+
+Bu karar telemetry sisteminin gerçek veri üretim frekansını korumak ve
+network transport katmanını gereksiz şekilde yüksek frekanslı hale
+getirmemek amacıyla alınmıştır.
+
+
+============================================================
+8. TELEMETRY PAYLOAD
+============================================================
+
+WebSocket üzerinden gönderilen veri mevcut TelemetryFrame yapısının
+JSON karşılığıdır.
+
+Payload içerisinde temel olarak aşağıdaki alanlar bulunmaktadır:
+
+t
+    Telemetry frame zaman bilgisini temsil eder.
+
+device
+    Telemetry verisinin hangi cihazdan geldiğini belirtir.
+
+seq
+    Frame sequence numarasını temsil eder.
+
+ch
+    Telemetry channel değerlerini içerir.
+
+
+Önemli nokta:
+
+WebSocket katmanı yeni bir telemetry veri modeli oluşturmamıştır.
+Mevcut TelemetryFrame yapısı doğrudan network üzerinden taşınmaktadır.
+
+
+============================================================
+9. MULTI-CLIENT BROADCAST
+============================================================
+
+Day 11'in önemli hedeflerinden biri birden fazla istemcinin aynı telemetry
+stream'e bağlanabilmesidir.
+
+Birden fazla WebSocket client bağlandığında server her client için ayrı
+bir simulator çalıştırmaz.
+
+Bunun yerine tek telemetry akışından gelen aynı frame bütün bağlı
+istemcilere broadcast edilir.
+
+Örnek:
+
+                 ┌── Client 1
+Simulator ───────┼── Client 2
+                 └── Client 3
+
+
+Bu yapı sayesinde:
+
+- Gereksiz simulator kopyaları oluşturulmaz.
+- Tüm client'lar aynı sequence akışını görür.
+- Telemetry üretimi tek kaynaktan yapılır.
+- Client sayısı arttığında aynı telemetry frame'i paylaşılabilir.
+
+
+============================================================
+10. BAĞLANTI VE DISCONNECT DAVRANIŞI
+============================================================
+
+WebSocket client bağlantısı kesildiğinde server'ın telemetry üretim
+akışı durdurulmamalıdır.
+
+Day 11 self-test içerisinde disconnect continuity kontrolü yapılmıştır.
+
+Bu kontrol sayesinde bir client'ın ayrılmasının ardından telemetry
+stream'in devam ettiği doğrulanmıştır.
+
+Yeni bir client bağlandığında da simulator baştan başlatılmamaktadır.
+
+Bu nedenle sequence akışı korunmaktadır.
+
+
+============================================================
+11. MİMARİ KARAR
+============================================================
+
+Simulator TypeScript tabanlıdır ve proje içerisinde @/ alias yollarını
+kullanmaktadır.
+
+Bu nedenle Simulator'ın doğrudan standart Node.js ile çalıştırılması
+uygun değildir.
+
+En küçük ve mevcut mimariyle uyumlu çözüm olarak:
+
+telemetry-ws.js
+    ↓
+tsx / CJS
+    ↓
+existing Simulator
+
+
+yaklaşımı kullanılmıştır.
+
+Bu çözüm sayesinde mevcut Simulator kodu değiştirilmeden WebSocket
+server tarafından tekrar kullanılabilmiştir.
+
+
+============================================================
+12. MEVCUT DASHBOARD İLE İLİŞKİ
+============================================================
+
+Day 11 kapsamında dashboard'ın telemetry source yapısı değiştirilmemiştir.
+
+Dashboard hâlâ mevcut süreç içi telemetry source yapısını kullanmaktadır.
+
+WebSocket server bağımsız bir transport layer olarak eklenmiştir.
+
+Bu nedenle Day 11:
+
+Dashboard migration
+veya
+Dashboard WebSocket integration
+
+değildir.
+
+Bu çalışma sonraki günlerde dashboard'ın WebSocket üzerinden gelen
+telemetry verisini kullanabilmesi için gerekli altyapıyı hazırlamaktadır.
+
+
+============================================================
+13. SELF-TEST
+============================================================
+
+Day 11 için otomatik bir WebSocket self-test sistemi oluşturulmuştur.
+
+Test aşağıdaki komut ile çalıştırılmaktadır:
+
+npm run test:day11
+
+
+Test sırasında aşağıdaki kontroller gerçekleştirilmiştir:
+
+Server module
+    WebSocket server modülünün doğru şekilde yüklenmesi.
+
+Client connect
+    WebSocket client'ın server'a bağlanabilmesi.
+
+Telemetry JSON
+    Gelen telemetry mesajının geçerli JSON formatında olması.
+
+Multi-client
+    Birden fazla client'ın aynı anda bağlanabilmesi.
+
+Shared broadcast
+    Aynı telemetry frame'inin bağlı client'lara yayınlanması.
+
+Sequence
+    Telemetry sequence numaralarının doğru ilerlemesi.
+
+~10 Hz rate
+    Telemetry yayın hızının yaklaşık 10 Hz olması.
+
+Disconnect continuity
+    Bir client bağlantısı kesildiğinde telemetry stream'in devam etmesi.
+
+
+============================================================
+14. DAY 11 SELF-TEST SONUCU
+============================================================
+
+Çalıştırılan komut:
+
+npm run test:day11
+
+
+Test sonucu:
+
+Day 11 WebSocket Self-Test
+--------------------------
+Server module: PASS
+Client connect: PASS
+Telemetry JSON: PASS
+Multi-client: PASS
+Shared broadcast: PASS
+Sequence: PASS
+~10 Hz rate: PASS
+Disconnect continuity: PASS
+
+All Day 11 checks passed.
+
+
+============================================================
+15. MANUEL SERVER TESTİ
+============================================================
+
+WebSocket server manuel olarak da çalıştırılmıştır.
+
+Komut:
+
+npm run server:telemetry
+
+
+Terminal çıktısı:
+
+[WS] Server started on port 8787
+[WS] Telemetry stream: 10 Hz
+
+
+Bu çıktı server'ın başarıyla başlatıldığını ve telemetry stream'in
+10 Hz frekansında çalıştığını göstermektedir.
+
+
+============================================================
+16. VALIDATION
+============================================================
+
+Day 11 kapsamında aşağıdaki validation kontrolleri gerçekleştirilmiştir:
+
+npx tsc --noEmit
+    TypeScript type check.
+
+npm run lint
+    ESLint kontrolü.
+
+npm run build
+    Production build kontrolü.
+
+npm run test:day08
+    Fault injection ve GroundTruth altyapısının korunması.
+
+npm run test:day09
+    Dataset generation ve labeling altyapısının korunması.
+
+npm run test:day10
+    Dataset validation, correlation ve leakage kontrollerinin korunması.
+
+npm run test:day11
+    WebSocket transport katmanının doğrulanması.
+
+
+Day 11 sonuçları:
+
+TypeScript Type Check      ✅ Passed
+ESLint                     ✅ Passed
+Production Build           ✅ Passed
+Day 08 Self-Test           ✅ Passed
+Day 09 Self-Test           ✅ Passed
+Day 10 Self-Test           ✅ Passed
+Day 11 Self-Test           ✅ Passed
+
+
+============================================================
+17. DAY 08–10 İLE UYUMLULUK
+============================================================
+
+Day 11 çalışması önceki günlerde geliştirilen altyapıları değiştirmemiştir.
+
+Day 08:
+FaultEngine
+GroundTruth
+F1–F5 fault senaryoları
+
+Day 09:
+DatasetRecorder
+GroundTruth labeling
+CSV export
+Normal dataset
+Fault dataset
+
+Day 10:
+Dataset validation
+Distribution analysis
+Correlation matrix
+Leakage check
+Deterministic validation
+
+Day 11:
+WebSocket transport
+Real-time broadcast
+Multi-client support
+
+
+Böylece telemetry üretim, fault simulation, dataset generation ve
+network transport katmanları birbirinden ayrılmıştır.
+
+
+============================================================
+18. GENEL MİMARİ
+============================================================
+
+Projenin mevcut yapısı aşağıdaki şekilde özetlenebilir:
+
 PlantModel
+    ↓
+Simulator
     ↓
 FaultEngine
     ↓
@@ -189,433 +462,188 @@ NoisePipeline
 Bounds / Clamp
     ↓
 TelemetryFrame
-```
+    ├──────────────→ Dashboard
+    │
+    ├──────────────→ DatasetRecorder
+    │                    ↓
+    │                 CSV Dataset
+    │                    ↓
+    │              Dataset Validation
+    │
+    └──────────────→ WebSocket Server
+                         ↓
+                    Client 1
+                    Client 2
+                    Client 3
 
-Beş farklı fault tipi oluşturuldu:
 
-| ID | Fault Type | Etkilenen Davranış |
-| :---: | :--- | :--- |
-| **F1** | `temperature_spike` | Core temperature artışı |
-| **F2** | `voltage_sag` | Voltage düşüşü |
-| **F3** | `current_surge` | Current artışı |
-| **F4** | `fan_degradation` | Fan RPM düşüşü |
-| **F5** | `sensor_drift` | Sensör değerinde kademeli drift |
+Bu mimaride farklı kullanım alanları aynı temel telemetry üretim
+kaynağını kullanmaktadır.
 
-Fault senaryolarının hangi frame aralığında ve hangi zaman içerisinde aktif olduğunu takip etmek amacıyla `GroundTruthEvent` yapısı oluşturuldu.
 
-Bu yapı sayesinde normal telemetry ile fault içeren telemetry verilerinin daha sonraki dataset ve anomaly detection çalışmalarında birbirinden ayrılması mümkün hale getirildi.
+============================================================
+19. DAY 11'İN PROJEDEKİ ROLÜ
+============================================================
 
-Dashboard üzerinde fault durumunun takip edilebilmesi için aşağıdaki bilgiler gösterilmektedir:
+Day 11 ile proje yalnızca browser içerisindeki telemetry simulation
+yapısından daha bağımsız bir telemetry streaming mimarisine doğru
+ilerletilmiştir.
 
-```text
-profile: variable
-seed: 1337
-noise: on
-faults: on
-active: F2-voltage-sag
-```
+Önceki aşamada:
 
-Day 08 kapsamında ayrıca otomatik self-test sistemi oluşturuldu.
+Simulator
+    ↓
+Dashboard
 
-Self-test aşağıdaki komut ile çalıştırılabilmektedir:
 
-```bash
-npm run test:day08
-```
+yapısı ağırlıklı olarak süreç içi çalışırken, Day 11 ile birlikte:
 
-Toplam 10 kontrol gerçekleştirildi ve tüm kontroller başarıyla tamamlandı.
+Simulator
+    ↓
+WebSocket Transport
+    ↓
+External Clients
 
----
 
-### 🔹 Gün 09 — Telemetry Dataset Oluşturma, Etiketleme ve CSV Export
+kullanımı mümkün hale gelmiştir.
 
-Dokuzuncu günde daha önce geliştirilen telemetry simulator altyapısı kullanılarak etiketlenmiş telemetry datasetlerinin oluşturulması üzerine çalışıldı.
+Bu yapı ilerleyen günlerde gerçek cihaz, embedded system veya farklı
+client uygulamalarından telemetry alınmasına daha uygun bir temel
+oluşturmaktadır.
 
-Bu aşamada canlı telemetry pipeline değiştirilmeden mevcut `TelemetryFrame` verilerini bounded şekilde toplayan bir `DatasetRecorder` yapısı oluşturuldu.
 
-Dataset içerisindeki etiketler Day 08 kapsamında oluşturulan `GroundTruthEvent` yapısından alınmaktadır. Fault bulunmayan frame'ler `normal` olarak değerlendirilirken, fault içeren frame'ler ilgili fault ID bilgisi ile `fault` olarak etiketlenmektedir.
-
-Dataset üretiminde kullanılan simulator ayarları:
-
-```text
-Seed        : 1337
-Sample Rate : 10 Hz
-Workload    : variable
-```
-
-CSV export işlemi için sabit bir header yapısı kullanıldı ve iki farklı dataset oluşturuldu:
-
-```text
-data/day09-normal.csv
-data/day09-faults.csv
-```
-
-Normal dataset içerisinde:
-
-```text
-800 normal samples
-```
-
-oluşturuldu.
-
-Fault dataset içerisinde ise:
-
-```text
-800 mixed samples
-300 fault-labeled samples
-```
-
-oluşturuldu. Fault etiketleri Day 08 kapsamında tanımlanan F1 ile F5 arasındaki fault senaryolarından oluşmaktadır.
-
-Dataset üretimi dashboard üzerinden gerçekleştirilmemektedir. CSV dosyalarının oluşturulması için mevcut `Simulator` yapısını kullanan ayrı bir Node scripti kullanılmaktadır.
-
-Day 09 kapsamında anomaly detection veya machine learning modeli geliştirilmemiştir. Oluşturulan datasetler ilerleyen aşamalarda gerçekleştirilecek anomaly detection ve machine learning çalışmalarının labeled input verisi olarak hazırlanmıştır.
-
-Day 09 için ayrıca otomatik self-test sistemi kullanıldı.
-
-Self-test aşağıdaki komut ile çalıştırılabilmektedir:
-
-```bash
-npm run test:day09
-npm run test:day10
-```
-
-Test sonucu:
-
-```text
-Day 09 Dataset Self-Test
-------------------------
-Normal rows: 800
-Fault rows: 300
-CSV export: PASS
-Labels: PASS
-Sequence order: PASS
-Determinism: PASS
-
-All checks passed.
-```
-
-Bu test sonucuyla CSV export, label doğruluğu, sequence order ve deterministic dataset üretimi başarıyla doğrulanmıştır.
-
-
----
-
-### 🔹 Gün 10 — Veri Seti Doğrulama, Dağılım Analizi ve Korelasyon Matrisi
-
-Onuncu günde Day 09 kapsamında oluşturulan normal ve fault içeren telemetry datasetleri doğrulandı ve analiz edildi.
-
-Bu aşamada simulator, FaultEngine, dashboard ve Day 09 dataset üretim pipeline'ı değiştirilmedi. Mevcut CSV datasetlerinin üzerine bağımsız bir doğrulama ve analiz katmanı oluşturuldu.
-
-Day 10 kapsamında aşağıdaki dataset bileşenleri geliştirildi:
-
-- `DatasetCsv`
-- `DatasetStats`
-- `Correlation`
-- `DatasetQuality`
-- `DatasetLeakage`
-- `FaultValidation`
-- `DatasetAnalysis`
-- `DatasetReport`
-- `day10SelfTest`
-
-Ayrıca aşağıdaki scriptler eklendi:
-
-```text
-scripts/run-day10-self-test.ts
-scripts/generate-day10-report.ts
-```
-
-Dataset analiz raporu aşağıdaki dosyada oluşturuldu:
-
-```text
-docs/dataset-report.md
-```
-
-Dağılım ve korelasyon görselleri ise aşağıdaki klasörde oluşturuldu:
-
-```text
-docs/dataset/
-```
-
-#### 📊 Normal Dataset İstatistikleri
-
-Normal eğitim datasetinde toplam 800 sample analiz edildi.
-
-| Kanal | Min | Max | Ortalama | Std. Sapma |
-| :--- | ---: | ---: | ---: | ---: |
-| `temp_core` | 23.45 | 46.90 | 41.89 | 5.80 |
-| `cpu_load` | 26.2 | 63.3 | 46.41 | 14.16 |
-| `voltage_in` | 12.07 | 12.27 | 12.16 | 0.06 |
-| `current_draw` | 0.80 | 1.31 | 1.07 | 0.17 |
-| `fan_rpm` | 882 | 2516 | 1987 | 546 |
-
-#### 🔗 Korelasyon Analizi
-
-Normal dataset üzerinde Pearson correlation analizi gerçekleştirildi.
-
-Önemli ilişkiler:
-
-```text
-cpu_load      ↔ current_draw    r =  0.9961
-current_draw  ↔ voltage_in      r = -0.9853
-temp_core     ↔ fan_rpm         r =  0.9593
-cpu_load      ↔ temp_core       r = -0.38
-```
-
-`cpu_load` ile `current_draw` arasında güçlü pozitif, `current_draw` ile `voltage_in` arasında güçlü negatif ve `temp_core` ile `fan_rpm` arasında güçlü pozitif korelasyon gözlemlendi.
-
-`cpu_load` ile `temp_core` arasındaki anlık korelasyonun beklenen pozitif ilişkiden farklı olduğu görüldü. Bu durum termal gecikme ile açıklanabilir ve analizde abartılı bir sonuç çıkarılmadı.
-
-#### 🧪 Fault Validation
-
-Day 08'de oluşturulan beş fault tipi dataset üzerinde doğrulandı:
-
-| Fault | Doğrulanan Örnek |
-| :---: | ---: |
-| F1 — `temperature_spike` | 50 |
-| F2 — `voltage_sag` | 40 |
-| F3 — `current_surge` | 50 |
-| F4 — `fan_degradation` | 60 |
-| F5 — `sensor_drift` | 100 |
-
-Tüm fault tipleri başarıyla doğrulandı.
-
-Eğitim datasetinde fault etiketi bulunmadığı doğrulandı.
-
-#### 🔐 Data Leakage Kontrolü
-
-Dataset validation aşamasında veri sızıntısı kontrolü gerçekleştirildi.
-
-Sonuçlar:
-
-```text
-Training fault labels : 0
-Data leakage           : 0
-```
-
-F4 ve F5 rampalarının başlangıcında intensity değerinin yaklaşık 0 olması nedeniyle aynı sequence içerisinde 10 frame sayısal olarak örtüşmektedir. Bu durum etiket sızıntısı olarak değerlendirilmemiş ve raporda belgelenmiştir.
-
-Bu kontrol özellikle sonraki anomaly detection aşaması için kritik olarak ele alınmıştır. Eğitim datasetinin yalnızca normal davranış içermesi korunmuştur.
-
-#### 🔁 Deterministic Validation
-
-Dataset üretiminin tekrar üretilebilirliği de kontrol edildi.
-
-Aynı simulator seed ve aynı parametreler kullanıldığında aynı dataset değerlerinin elde edildiği doğrulandı.
-
-Kullanılan temel seed:
-
-```text
-1337
-```
-
-#### 🧪 Day 10 Self-Test
-
-Day 10 için otomatik validation sistemi oluşturuldu.
-
-Çalıştırma komutu:
-
-```bash
-npm run test:day10
-```
-
-Test sonucu:
-
-```text
-Day 10 Dataset Validation
--------------------------
-
-Dataset schema: PASS
-Normal dataset: PASS
-Fault dataset: PASS
-
-F1 temperature_spike: PASS
-F2 voltage_sag: PASS
-F3 current_surge: PASS
-F4 fan_degradation: PASS
-F5 sensor_drift: PASS
-
-Statistics: PASS
-Distribution analysis: PASS
-Correlation matrix: PASS
-Correlation symmetry: PASS
-Leakage check: PASS
-Determinism: PASS
-
-All Day 10 checks passed.
-```
-
-#### ✅ Validation Sonuçları
-
-| Kontrol | Sonuç |
-| :--- | :---: |
-| TypeScript Type Check | ✅ Passed |
-| ESLint | ✅ Passed |
-| Production Build | ✅ Passed |
-| Day 08 Self-Test | ✅ Passed |
-| Day 09 Self-Test | ✅ Passed |
-| Day 10 Self-Test | ✅ Passed |
-| Dataset Schema | ✅ Passed |
-| Normal Dataset | ✅ Passed |
-| Fault Dataset | ✅ Passed |
-| F1–F5 Validation | ✅ Passed |
-| Distribution Analysis | ✅ Passed |
-| Correlation Matrix | ✅ Passed |
-| Leakage Check | ✅ Passed |
-| Determinism | ✅ Passed |
-
-Day 10 sonunda telemetry datasetlerinin yapısı, dağılımları، kanallar arası ilişkileri, fault etiketleri, veri sızıntısı ve deterministic üretim özellikleri başarıyla doğrulanmıştır.
-
-
----
-
-## 🧪 Validation
-
-Projenin farklı aşamalarında aşağıdaki validation kontrolleri kullanılmaktadır:
-
-```bash
-npx tsc --noEmit
-npm run lint
-npm run build
-npm run test:day08
-npm run test:day09
-npm run test:day10
-```
-
-Day 08 ve Day 09 sonunda gerçekleştirilen kontroller:
-
-| Kontrol | Sonuç |
-| :--- | :---: |
-| TypeScript Type Check | ✅ Passed |
-| ESLint | ✅ Passed |
-| Production Build | ✅ Passed |
-| Day 08 Self-Test | ✅ Passed |
-| Day 08 Self-Test Checks | ✅ 10 / 10 |
-| Day 09 Self-Test | ✅ Passed |
-| Day 09 CSV Export | ✅ Passed |
-| Day 09 Labels | ✅ Passed |
-| Day 09 Sequence Order | ✅ Passed |
-| Day 09 Determinism | ✅ Passed |
-| Day 10 Self-Test | ✅ Passed |
-| Day 10 Dataset Validation | ✅ Passed |
-| Day 10 Distribution Analysis | ✅ Passed |
-| Day 10 Correlation Matrix | ✅ Passed |
-| Day 10 Leakage Check | ✅ Passed |
-| Day 10 Determinism | ✅ Passed |
-
----
-
-## 🧩 Kullanılan Teknolojiler
-
-Projenin frontend, simulator ve dataset generation tarafında aşağıdaki teknolojiler kullanılmaktadır:
+============================================================
+20. KULLANILAN TEKNOLOJİLER
+============================================================
 
 - Next.js
 - React
 - TypeScript
 - Tailwind CSS
-- SVG
 - Node.js
+- WebSocket
+- ws
+- tsx
 - Git
 - GitHub
-- CSV
-- Dataset Analysis
-- Pearson Correlation
+- JSON
+- TelemetryFrame
 
----
 
-## 🎯 Proje Hedefi
+============================================================
+21. SONUÇ
+============================================================
 
-SpikeEdge Telemetry projesinin temel amacı, embedded sistemlerde bulunabilecek telemetry verilerinin gerçekçi bir şekilde simüle edilmesi ve bu verilerin monitoring paneli üzerinden izlenebilmesini sağlamaktır.
+Day 11 sonunda SpikeEdge Telemetry projesine bağımsız bir WebSocket
+telemetry transport katmanı başarıyla eklenmiştir.
 
-Proje ilerledikçe sistemin yalnızca normal telemetry üretmesi yerine;
+Mevcut Simulator yeniden kullanılmış, ikinci bir telemetry üretim
+kaynağı oluşturulmamıştır.
 
-```text
-Normal Telemetry
-       ↓
-Workload Simulation
-       ↓
-Physical Plant Model
-       ↓
-Fault Injection
-       ↓
-Noise
-       ↓
-Ground Truth
-       ↓
-Dataset Recording
-       ↓
-CSV Export
-       ↓
-Dataset Validation
-       ↓
-Distribution Analysis
-       ↓
-Correlation Analysis
-       ↓
-Anomaly Detection
-```
+Telemetry stream 10 Hz frekansında yayınlanmakta ve birden fazla
+WebSocket client aynı telemetry akışına bağlanabilmektedir.
 
-şeklinde daha kapsamlı bir telemetry analysis altyapısına dönüştürülmesi hedeflenmektedir.
+Self-test sonuçlarına göre:
 
-Day 09 itibarıyla dataset generation ve labeling altyapısı oluşturulmuş durumdadır. Bu nedenle bir sonraki aşamada oluşturulan labeled telemetry datasetleri anomaly detection çalışmalarında kullanılabilecek durumdadır.
+- Server modülü çalışmaktadır.
+- Client bağlantısı başarılıdır.
+- Telemetry JSON payload doğrulanmıştır.
+- Multi-client desteği çalışmaktadır.
+- Shared broadcast doğrulanmıştır.
+- Sequence sırası korunmaktadır.
+- Yaklaşık 10 Hz yayın hızı doğrulanmıştır.
+- Client disconnect sonrasında stream devam etmektedir.
 
----
+Böylece Day 11'in temel hedefi olan gerçek zamanlı telemetry verilerinin
+mevcut Simulator üzerinden WebSocket ile güvenilir şekilde taşınması
+başarıyla tamamlanmıştır.
 
-## 🚀 Sonraki Aşama
 
-Day 10 sonunda labeled telemetry datasetlerinin kalite ve bütünlük kontrolleri tamamlanmıştır.
+============================================================
+22. BİR SONRAKİ AŞAMA
+============================================================
 
-Bir sonraki aşamada bu doğrulanmış datasetler kullanılarak feature analysis ve anomaly detection çalışmalarına geçilmesi planlanmaktadır.
+Bir sonraki aşamada WebSocket transport katmanının client tarafında
+kullanılması planlanmaktadır.
 
-Amaç, normal telemetry davranışının öğrenilmesi ve fault içeren davranışların bu normal modelden sapma olarak tespit edilebilmesidir.
+Hedef mimari:
 
-Özellikle eğitim datasetinin yalnızca normal veri içermesi ve test tarafındaki fault örneklerinin eğitim sürecine sızmaması korunacaktır.
+WebSocket Server
+    ↓
+Telemetry Client
+    ↓
+Ring Buffer
+    ↓
+Backpressure
+    ↓
+Automatic Reconnect
+    ↓
+Clock Synchronization
+    ↓
+Dashboard
 
----
 
-## 📌 Güncel Durum
+Bu aşamada amaç WebSocket bağlantısının güvenilir şekilde yönetilmesi
+ve gerçek zamanlı telemetry verilerinin client tarafında kontrollü
+olarak işlenmesidir.
 
-**Staj Günleri:** 10 / 10 tamamlandı ✅
 
-**Mevcut Durum:**
+============================================================
+23. GÜNCEL DURUM
+============================================================
 
-```text
-Telemetry Simulator        ✅
-Plant Model                ✅
-Workload Profiles          ✅
-Deterministic Random       ✅
-Noise Pipeline             ✅
-Live Dashboard             ✅
-Live Telemetry Charts      ✅
-Fault Injection            ✅
-FaultEngine                ✅
-Ground Truth               ✅
-Fault Self-Test            ✅
-Deterministic Fault Sim.   ✅
-Fault-aware Telemetry      ✅
-Dataset Recorder           ✅
-Ground Truth Labeling      ✅
-CSV Dataset Export         ✅
-Day 09 Self-Test           ✅
-Normal Dataset             ✅
-Fault Dataset              ✅
-Dataset Validation          ✅
-Distribution Analysis       ✅
-Correlation Matrix          ✅
-Leakage Check               ✅
-Deterministic Validation    ✅
-```
+Staj Günleri: 11 / 11 tamamlandı ✅
 
-**Bir sonraki hedef:**
+Mevcut durum:
 
-```text
-Labeled Telemetry Dataset
+Telemetry Simulator          ✅
+Plant Model                  ✅
+Workload Profiles            ✅
+Deterministic Random         ✅
+Noise Pipeline               ✅
+Live Dashboard               ✅
+Live Telemetry Charts        ✅
+Fault Injection              ✅
+FaultEngine                  ✅
+Ground Truth                 ✅
+Fault Self-Test              ✅
+Deterministic Fault Sim.     ✅
+Fault-aware Telemetry        ✅
+Dataset Recorder             ✅
+Ground Truth Labeling        ✅
+CSV Dataset Export           ✅
+Dataset Validation           ✅
+Distribution Analysis        ✅
+Correlation Matrix            ✅
+Leakage Check                 ✅
+Deterministic Validation      ✅
+WebSocket Server              ✅
+Real-time Telemetry Stream    ✅
+Multi-client Broadcast        ✅
+10 Hz Telemetry Transport     ✅
+WebSocket Self-Test           ✅
+
+
+============================================================
+24. SONRAKİ HEDEF
+============================================================
+
+WebSocket Transport
         ↓
-Dataset Validation
+Telemetry Client
         ↓
-Feature Analysis
+Ring Buffer
         ↓
-Anomaly Detection
+Backpressure
+        ↓
+Automatic Reconnect
+        ↓
+Clock Synchronization
+        ↓
+Live Dashboard Integration
+        ↓
+Fixed Threshold Baseline
+        ↓
+Anomaly Evaluation
         ↓
 Fault Classification
-```
