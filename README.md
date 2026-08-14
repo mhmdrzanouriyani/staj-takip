@@ -2,7 +2,7 @@
 
 Bu depo, SpikeEdge Telemetry projesi kapsamında gerçekleştirilen günlük staj çalışmalarını düzenli olarak belgelemek amacıyla oluşturulmuştur.
 
-Proje boyunca telemetry simulator, dashboard, workload profilleri, deterministic simulation, noise pipeline, fault injection ve ground-truth altyapısı gibi bileşenler geliştirilmekte ve test edilmektedir.
+Proje boyunca telemetry simulator, dashboard, workload profilleri, deterministic simulation, noise pipeline, fault injection, ground-truth ve labeled dataset altyapısı gibi bileşenler geliştirilmekte ve test edilmektedir.
 
 ---
 
@@ -18,6 +18,7 @@ Proje boyunca telemetry simulator, dashboard, workload profilleri, deterministic
 | **Gün 06** | Canlı Telemetri Grafikleri ve Telemetri Veri Akışının Geliştirilmesi | ✅ Tamamlandı |
 | **Gün 07** | Telemetri Yük Profilleri, Deterministik Gürültü ve Simülasyon Testleri | ✅ Tamamlandı |
 | **Gün 08** | Fault Injection, Ground Truth ve Arıza Senaryolarının Simülasyonu | ✅ Tamamlandı |
+| **Gün 09** | Telemetri Dataset Oluşturma, Etiketleme ve CSV Export | ✅ Tamamlandı |
 
 ---
 
@@ -60,6 +61,13 @@ staj-takip/
 │   ├── 🖼️ day08-f3-current-surge.png
 │   ├── 🖼️ day08-f4-fan-degradation.png
 │   └── 🖼️ day08-f5-sensor-drift.png
+│
+├── 📁 Gun_09/
+│   └── 📄 README.md
+│
+├── 📁 data/
+│   ├── 📊 day09-normal.csv
+│   └── 📊 day09-faults.csv
 │
 └── 📄 README.md
 ```
@@ -207,6 +215,77 @@ Toplam 10 kontrol gerçekleştirildi ve tüm kontroller başarıyla tamamlandı.
 
 ---
 
+### 🔹 Gün 09 — Telemetry Dataset Oluşturma, Etiketleme ve CSV Export
+
+Dokuzuncu günde daha önce geliştirilen telemetry simulator altyapısı kullanılarak etiketlenmiş telemetry datasetlerinin oluşturulması üzerine çalışıldı.
+
+Bu aşamada canlı telemetry pipeline değiştirilmeden mevcut `TelemetryFrame` verilerini bounded şekilde toplayan bir `DatasetRecorder` yapısı oluşturuldu.
+
+Dataset içerisindeki etiketler Day 08 kapsamında oluşturulan `GroundTruthEvent` yapısından alınmaktadır. Fault bulunmayan frame'ler `normal` olarak değerlendirilirken, fault içeren frame'ler ilgili fault ID bilgisi ile `fault` olarak etiketlenmektedir.
+
+Dataset üretiminde kullanılan simulator ayarları:
+
+```text
+Seed        : 1337
+Sample Rate : 10 Hz
+Workload    : variable
+```
+
+CSV export işlemi için sabit bir header yapısı kullanıldı ve iki farklı dataset oluşturuldu:
+
+```text
+data/day09-normal.csv
+data/day09-faults.csv
+```
+
+Normal dataset içerisinde:
+
+```text
+800 normal samples
+```
+
+oluşturuldu.
+
+Fault dataset içerisinde ise:
+
+```text
+800 mixed samples
+300 fault-labeled samples
+```
+
+oluşturuldu. Fault etiketleri Day 08 kapsamında tanımlanan F1 ile F5 arasındaki fault senaryolarından oluşmaktadır.
+
+Dataset üretimi dashboard üzerinden gerçekleştirilmemektedir. CSV dosyalarının oluşturulması için mevcut `Simulator` yapısını kullanan ayrı bir Node scripti kullanılmaktadır.
+
+Day 09 kapsamında anomaly detection veya machine learning modeli geliştirilmemiştir. Oluşturulan datasetler ilerleyen aşamalarda gerçekleştirilecek anomaly detection ve machine learning çalışmalarının labeled input verisi olarak hazırlanmıştır.
+
+Day 09 için ayrıca otomatik self-test sistemi kullanıldı.
+
+Self-test aşağıdaki komut ile çalıştırılabilmektedir:
+
+```bash
+npm run test:day09
+```
+
+Test sonucu:
+
+```text
+Day 09 Dataset Self-Test
+------------------------
+Normal rows: 800
+Fault rows: 300
+CSV export: PASS
+Labels: PASS
+Sequence order: PASS
+Determinism: PASS
+
+All checks passed.
+```
+
+Bu test sonucuyla CSV export, label doğruluğu, sequence order ve deterministic dataset üretimi başarıyla doğrulanmıştır.
+
+---
+
 ## 🧪 Validation
 
 Projenin farklı aşamalarında aşağıdaki validation kontrolleri kullanılmaktadır:
@@ -216,9 +295,10 @@ npx tsc --noEmit
 npm run lint
 npm run build
 npm run test:day08
+npm run test:day09
 ```
 
-Day 08 sonunda gerçekleştirilen kontroller:
+Day 08 ve Day 09 sonunda gerçekleştirilen kontroller:
 
 | Kontrol | Sonuç |
 | :--- | :---: |
@@ -226,13 +306,18 @@ Day 08 sonunda gerçekleştirilen kontroller:
 | ESLint | ✅ Passed |
 | Production Build | ✅ Passed |
 | Day 08 Self-Test | ✅ Passed |
-| Self-Test Checks | ✅ 10 / 10 |
+| Day 08 Self-Test Checks | ✅ 10 / 10 |
+| Day 09 Self-Test | ✅ Passed |
+| Day 09 CSV Export | ✅ Passed |
+| Day 09 Labels | ✅ Passed |
+| Day 09 Sequence Order | ✅ Passed |
+| Day 09 Determinism | ✅ Passed |
 
 ---
 
 ## 🧩 Kullanılan Teknolojiler
 
-Projenin frontend ve simulator tarafında aşağıdaki teknolojiler kullanılmaktadır:
+Projenin frontend, simulator ve dataset generation tarafında aşağıdaki teknolojiler kullanılmaktadır:
 
 - Next.js
 - React
@@ -242,6 +327,7 @@ Projenin frontend ve simulator tarafında aşağıdaki teknolojiler kullanılmak
 - Node.js
 - Git
 - GitHub
+- CSV
 
 ---
 
@@ -264,28 +350,32 @@ Noise
        ↓
 Ground Truth
        ↓
-Dataset
+Dataset Recording
+       ↓
+CSV Export
        ↓
 Anomaly Detection
 ```
 
 şeklinde daha kapsamlı bir telemetry analysis altyapısına dönüştürülmesi hedeflenmektedir.
 
+Day 09 itibarıyla dataset generation ve labeling altyapısı oluşturulmuş durumdadır. Bu nedenle bir sonraki aşamada oluşturulan labeled telemetry datasetleri anomaly detection çalışmalarında kullanılabilecek durumdadır.
+
 ---
 
 ## 🚀 Sonraki Aşama
 
-Bir sonraki aşamada oluşturulan normal ve fault içeren telemetry akışlarının offline olarak kaydedilmesi ve eğitim/test verisi olarak kullanılabilecek şekilde düzenlenmesi planlanmaktadır.
+Bir sonraki aşamada Day 09 kapsamında oluşturulan labeled telemetry datasetleri kullanılarak anomaly detection yaklaşımının geliştirilmesi planlanmaktadır.
 
-Amaç, normal davranış ile fault içeren davranışların ayrıştırılabileceği temiz, etiketli ve tekrar üretilebilir bir telemetry dataset altyapısı oluşturmaktır.
+Amaç, normal telemetry davranışları ile fault içeren telemetry davranışları arasındaki farklılıkların analiz edilmesi ve sistem tarafından otomatik olarak tespit edilebilmesidir.
 
-Bu dataset ilerleyen aşamalarda anomaly detection ve fault analysis çalışmalarında kullanılacaktır.
+İlerleyen aşamalarda farklı fault tipleri için telemetry davranışlarının karşılaştırılması, uygun feature'ların belirlenmesi ve anomaly detection modelinin oluşturulması hedeflenmektedir.
 
 ---
 
 ## 📌 Güncel Durum
 
-**Staj Günleri:** 8 / 8 tamamlandı ✅
+**Staj Günleri:** 9 / 9 tamamlandı ✅
 
 **Mevcut Durum:**
 
@@ -303,14 +393,22 @@ Ground Truth               ✅
 Fault Self-Test            ✅
 Deterministic Fault Sim.   ✅
 Fault-aware Telemetry      ✅
+Dataset Recorder           ✅
+Ground Truth Labeling      ✅
+CSV Dataset Export         ✅
+Day 09 Self-Test           ✅
+Normal Dataset             ✅
+Fault Dataset              ✅
 ```
 
 **Bir sonraki hedef:**
 
 ```text
-Telemetry Dataset Generation
+Labeled Telemetry Dataset
         ↓
-Labeled Training / Test Data
+Feature Analysis
         ↓
 Anomaly Detection
+        ↓
+Fault Classification
 ```
