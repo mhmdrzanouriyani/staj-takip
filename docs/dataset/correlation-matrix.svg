@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="418" height="418" viewBox="0 0 418 418">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="209" y="18" text-anchor="middle" font-size="14" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">Pearson korelasyon matrisi (normal veri)</text>
+  <text x="115" y="78" text-anchor="middle" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">temp_core</text>
+  <text x="167" y="78" text-anchor="middle" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">temp_ambient</text>
+  <text x="219" y="78" text-anchor="middle" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">voltage_in</text>
+  <text x="271" y="78" text-anchor="middle" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">current_draw</text>
+  <text x="323" y="78" text-anchor="middle" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">fan_rpm</text>
+  <text x="375" y="78" text-anchor="middle" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">cpu_load</text>
+  <text x="82" y="120" text-anchor="end" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">temp_core</text>
+  <text x="82" y="172" text-anchor="end" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">temp_ambient</text>
+  <text x="82" y="224" text-anchor="end" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">voltage_in</text>
+  <text x="82" y="276" text-anchor="end" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">current_draw</text>
+  <text x="82" y="328" text-anchor="end" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">fan_rpm</text>
+  <text x="82" y="380" text-anchor="end" font-size="10" font-family="ui-sans-serif, system-ui, sans-serif">cpu_load</text>
+  <rect x="90" y="90" width="50" height="50" fill="rgb(220,0,0)" stroke="#cbd5e1" /><text x="115" y="120" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="142" y="90" width="50" height="50" fill="rgb(220,105,105)" stroke="#cbd5e1" /><text x="167" y="120" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.59</text>
+  <rect x="194" y="90" width="50" height="50" fill="rgb(220,159,159)" stroke="#cbd5e1" /><text x="219" y="120" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.38</text>
+  <rect x="246" y="90" width="50" height="50" fill="rgb(169,236,220)" stroke="#cbd5e1" /><text x="271" y="120" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.34</text>
+  <rect x="298" y="90" width="50" height="50" fill="rgb(220,10,10)" stroke="#cbd5e1" /><text x="323" y="120" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.96</text>
+  <rect x="350" y="90" width="50" height="50" fill="rgb(158,234,220)" stroke="#cbd5e1" /><text x="375" y="120" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.38</text>
+  <rect x="90" y="142" width="50" height="50" fill="rgb(220,105,105)" stroke="#cbd5e1" /><text x="115" y="172" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.59</text>
+  <rect x="142" y="142" width="50" height="50" fill="rgb(220,0,0)" stroke="#cbd5e1" /><text x="167" y="172" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="194" y="142" width="50" height="50" fill="rgb(220,39,39)" stroke="#cbd5e1" /><text x="219" y="172" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.85</text>
+  <rect x="246" y="142" width="50" height="50" fill="rgb(42,209,220)" stroke="#cbd5e1" /><text x="271" y="172" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.84</text>
+  <rect x="298" y="142" width="50" height="50" fill="rgb(220,82,82)" stroke="#cbd5e1" /><text x="323" y="172" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.68</text>
+  <rect x="350" y="142" width="50" height="50" fill="rgb(37,208,220)" stroke="#cbd5e1" /><text x="375" y="172" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.86</text>
+  <rect x="90" y="194" width="50" height="50" fill="rgb(220,159,159)" stroke="#cbd5e1" /><text x="115" y="224" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.38</text>
+  <rect x="142" y="194" width="50" height="50" fill="rgb(220,39,39)" stroke="#cbd5e1" /><text x="167" y="224" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.85</text>
+  <rect x="194" y="194" width="50" height="50" fill="rgb(220,0,0)" stroke="#cbd5e1" /><text x="219" y="224" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="246" y="194" width="50" height="50" fill="rgb(4,201,220)" stroke="#cbd5e1" /><text x="271" y="224" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.99</text>
+  <rect x="298" y="194" width="50" height="50" fill="rgb(220,124,124)" stroke="#cbd5e1" /><text x="323" y="224" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.52</text>
+  <rect x="350" y="194" width="50" height="50" fill="rgb(3,201,220)" stroke="#cbd5e1" /><text x="375" y="224" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.99</text>
+  <rect x="90" y="246" width="50" height="50" fill="rgb(169,236,220)" stroke="#cbd5e1" /><text x="115" y="276" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.34</text>
+  <rect x="142" y="246" width="50" height="50" fill="rgb(42,209,220)" stroke="#cbd5e1" /><text x="167" y="276" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.84</text>
+  <rect x="194" y="246" width="50" height="50" fill="rgb(4,201,220)" stroke="#cbd5e1" /><text x="219" y="276" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.99</text>
+  <rect x="246" y="246" width="50" height="50" fill="rgb(220,0,0)" stroke="#cbd5e1" /><text x="271" y="276" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="298" y="246" width="50" height="50" fill="rgb(132,228,220)" stroke="#cbd5e1" /><text x="323" y="276" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.48</text>
+  <rect x="350" y="246" width="50" height="50" fill="rgb(220,1,1)" stroke="#cbd5e1" /><text x="375" y="276" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="90" y="298" width="50" height="50" fill="rgb(220,10,10)" stroke="#cbd5e1" /><text x="115" y="328" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.96</text>
+  <rect x="142" y="298" width="50" height="50" fill="rgb(220,82,82)" stroke="#cbd5e1" /><text x="167" y="328" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.68</text>
+  <rect x="194" y="298" width="50" height="50" fill="rgb(220,124,124)" stroke="#cbd5e1" /><text x="219" y="328" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">0.52</text>
+  <rect x="246" y="298" width="50" height="50" fill="rgb(132,228,220)" stroke="#cbd5e1" /><text x="271" y="328" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.48</text>
+  <rect x="298" y="298" width="50" height="50" fill="rgb(220,0,0)" stroke="#cbd5e1" /><text x="323" y="328" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="350" y="298" width="50" height="50" fill="rgb(122,226,220)" stroke="#cbd5e1" /><text x="375" y="328" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.52</text>
+  <rect x="90" y="350" width="50" height="50" fill="rgb(158,234,220)" stroke="#cbd5e1" /><text x="115" y="380" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.38</text>
+  <rect x="142" y="350" width="50" height="50" fill="rgb(37,208,220)" stroke="#cbd5e1" /><text x="167" y="380" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.86</text>
+  <rect x="194" y="350" width="50" height="50" fill="rgb(3,201,220)" stroke="#cbd5e1" /><text x="219" y="380" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.99</text>
+  <rect x="246" y="350" width="50" height="50" fill="rgb(220,1,1)" stroke="#cbd5e1" /><text x="271" y="380" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+  <rect x="298" y="350" width="50" height="50" fill="rgb(122,226,220)" stroke="#cbd5e1" /><text x="323" y="380" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">-0.52</text>
+  <rect x="350" y="350" width="50" height="50" fill="rgb(220,0,0)" stroke="#cbd5e1" /><text x="375" y="380" text-anchor="middle" font-size="11" font-family="ui-sans-serif, system-ui, sans-serif" fill="#0f172a">1.00</text>
+</svg>

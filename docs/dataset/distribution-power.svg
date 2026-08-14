@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="688" height="220" viewBox="0 0 688 220">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="344" y="14" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif">Güç dağılımı (normal veri)</text>
+  
+  <text x="190" y="24" text-anchor="middle" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">voltage_in — Giriş Gerilimi</text>
+  <rect x="48" y="36" width="284" height="124" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="48.00" y="63.27" width="26.40" height="96.73" fill="#2563eb"/>
+  <rect x="76.40" y="36.00" width="26.40" height="124.00" fill="#2563eb"/>
+  <rect x="104.80" y="136.63" width="26.40" height="23.37" fill="#2563eb"/>
+  <rect x="133.20" y="132.08" width="26.40" height="27.92" fill="#2563eb"/>
+  <rect x="161.60" y="136.63" width="26.40" height="23.37" fill="#2563eb"/>
+  <rect x="190.00" y="141.82" width="26.40" height="18.18" fill="#2563eb"/>
+  <rect x="218.40" y="152.21" width="26.40" height="7.79" fill="#2563eb"/>
+  <rect x="246.80" y="84.04" width="26.40" height="75.96" fill="#2563eb"/>
+  <rect x="275.20" y="50.93" width="26.40" height="109.07" fill="#2563eb"/>
+  <rect x="303.60" y="147.02" width="26.40" height="12.98" fill="#2563eb"/>
+
+  <text x="510" y="24" text-anchor="middle" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">current_draw — Akım</text>
+  <rect x="368" y="36" width="284" height="124" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="368.00" y="68.63" width="26.40" height="91.37" fill="#2563eb"/>
+  <rect x="396.40" y="63.41" width="26.40" height="96.59" fill="#2563eb"/>
+  <rect x="424.80" y="144.34" width="26.40" height="15.66" fill="#2563eb"/>
+  <rect x="453.20" y="148.25" width="26.40" height="11.75" fill="#2563eb"/>
+  <rect x="481.60" y="141.73" width="26.40" height="18.27" fill="#2563eb"/>
+  <rect x="510.00" y="139.12" width="26.40" height="20.88" fill="#2563eb"/>
+  <rect x="538.40" y="142.38" width="26.40" height="17.62" fill="#2563eb"/>
+  <rect x="566.80" y="103.22" width="26.40" height="56.78" fill="#2563eb"/>
+  <rect x="595.20" y="36.00" width="26.40" height="124.00" fill="#2563eb"/>
+  <rect x="623.60" y="90.82" width="26.40" height="69.18" fill="#2563eb"/>
+</svg>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="688" height="220" viewBox="0 0 688 220">
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="344" y="14" text-anchor="middle" font-size="13" font-family="ui-sans-serif, system-ui, sans-serif">Sıcaklık dağılımı (normal veri)</text>
+  
+  <text x="190" y="24" text-anchor="middle" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">temp_core — Çekirdek Sıcaklığı</text>
+  <rect x="48" y="36" width="284" height="124" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="48.00" y="151.58" width="26.40" height="8.42" fill="#2563eb"/>
+  <rect x="76.40" y="151.58" width="26.40" height="8.42" fill="#2563eb"/>
+  <rect x="104.80" y="151.58" width="26.40" height="8.42" fill="#2563eb"/>
+  <rect x="133.20" y="150.43" width="26.40" height="9.57" fill="#2563eb"/>
+  <rect x="161.60" y="150.05" width="26.40" height="9.95" fill="#2563eb"/>
+  <rect x="190.00" y="148.14" width="26.40" height="11.86" fill="#2563eb"/>
+  <rect x="218.40" y="145.46" width="26.40" height="14.54" fill="#2563eb"/>
+  <rect x="246.80" y="139.72" width="26.40" height="20.28" fill="#2563eb"/>
+  <rect x="275.20" y="69.30" width="26.40" height="90.70" fill="#2563eb"/>
+  <rect x="303.60" y="36.00" width="26.40" height="124.00" fill="#2563eb"/>
+
+  <text x="510" y="24" text-anchor="middle" font-size="12" font-family="ui-sans-serif, system-ui, sans-serif">temp_ambient — Ortam Sıcaklığı</text>
+  <rect x="368" y="36" width="284" height="124" fill="#f8fafc" stroke="#e2e8f0"/>
+  <rect x="368.00" y="155.83" width="26.40" height="4.17" fill="#2563eb"/>
+  <rect x="396.40" y="36.00" width="26.40" height="124.00" fill="#2563eb"/>
+  <rect x="424.80" y="160.00" width="26.40" height="0.00" fill="#2563eb"/>
+  <rect x="453.20" y="58.65" width="26.40" height="101.35" fill="#2563eb"/>
+  <rect x="481.60" y="160.00" width="26.40" height="0.00" fill="#2563eb"/>
+  <rect x="510.00" y="69.38" width="26.40" height="90.62" fill="#2563eb"/>
+  <rect x="538.40" y="74.75" width="26.40" height="85.25" fill="#2563eb"/>
+  <rect x="566.80" y="160.00" width="26.40" height="0.00" fill="#2563eb"/>
+  <rect x="595.20" y="93.83" width="26.40" height="66.17" fill="#2563eb"/>
+  <rect x="623.60" y="154.63" width="26.40" height="5.37" fill="#2563eb"/>
+</svg>
