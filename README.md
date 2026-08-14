@@ -19,6 +19,7 @@ Proje boyunca telemetry simulator, dashboard, workload profilleri, deterministic
 | **Gün 07** | Telemetri Yük Profilleri, Deterministik Gürültü ve Simülasyon Testleri | ✅ Tamamlandı |
 | **Gün 08** | Fault Injection, Ground Truth ve Arıza Senaryolarının Simülasyonu | ✅ Tamamlandı |
 | **Gün 09** | Telemetri Dataset Oluşturma, Etiketleme ve CSV Export | ✅ Tamamlandı |
+| **Gün 10** | Veri Seti Doğrulama, Dağılım Analizi ve Korelasyon Matrisi | ✅ Tamamlandı |
 
 ---
 
@@ -65,9 +66,20 @@ staj-takip/
 ├── 📁 Gun_09/
 │   └── 📄 README.md
 │
+├── 📁 Gun_10/
+│   └── 📄 README.md
+│
 ├── 📁 data/
 │   ├── 📊 day09-normal.csv
 │   └── 📊 day09-faults.csv
+│
+├── 📁 docs/
+│   ├── 📄 dataset-report.md
+│   └── 📁 dataset/
+│       ├── 📊 correlation-matrix.svg
+│       ├── 📊 distribution-power.svg
+│       ├── 📊 distribution-system.svg
+│       └── 📊 distribution-temperature.svg
 │
 └── 📄 README.md
 ```
@@ -265,6 +277,7 @@ Self-test aşağıdaki komut ile çalıştırılabilmektedir:
 
 ```bash
 npm run test:day09
+npm run test:day10
 ```
 
 Test sonucu:
@@ -284,6 +297,176 @@ All checks passed.
 
 Bu test sonucuyla CSV export, label doğruluğu, sequence order ve deterministic dataset üretimi başarıyla doğrulanmıştır.
 
+
+---
+
+### 🔹 Gün 10 — Veri Seti Doğrulama, Dağılım Analizi ve Korelasyon Matrisi
+
+Onuncu günde Day 09 kapsamında oluşturulan normal ve fault içeren telemetry datasetleri doğrulandı ve analiz edildi.
+
+Bu aşamada simulator, FaultEngine, dashboard ve Day 09 dataset üretim pipeline'ı değiştirilmedi. Mevcut CSV datasetlerinin üzerine bağımsız bir doğrulama ve analiz katmanı oluşturuldu.
+
+Day 10 kapsamında aşağıdaki dataset bileşenleri geliştirildi:
+
+- `DatasetCsv`
+- `DatasetStats`
+- `Correlation`
+- `DatasetQuality`
+- `DatasetLeakage`
+- `FaultValidation`
+- `DatasetAnalysis`
+- `DatasetReport`
+- `day10SelfTest`
+
+Ayrıca aşağıdaki scriptler eklendi:
+
+```text
+scripts/run-day10-self-test.ts
+scripts/generate-day10-report.ts
+```
+
+Dataset analiz raporu aşağıdaki dosyada oluşturuldu:
+
+```text
+docs/dataset-report.md
+```
+
+Dağılım ve korelasyon görselleri ise aşağıdaki klasörde oluşturuldu:
+
+```text
+docs/dataset/
+```
+
+#### 📊 Normal Dataset İstatistikleri
+
+Normal eğitim datasetinde toplam 800 sample analiz edildi.
+
+| Kanal | Min | Max | Ortalama | Std. Sapma |
+| :--- | ---: | ---: | ---: | ---: |
+| `temp_core` | 23.45 | 46.90 | 41.89 | 5.80 |
+| `cpu_load` | 26.2 | 63.3 | 46.41 | 14.16 |
+| `voltage_in` | 12.07 | 12.27 | 12.16 | 0.06 |
+| `current_draw` | 0.80 | 1.31 | 1.07 | 0.17 |
+| `fan_rpm` | 882 | 2516 | 1987 | 546 |
+
+#### 🔗 Korelasyon Analizi
+
+Normal dataset üzerinde Pearson correlation analizi gerçekleştirildi.
+
+Önemli ilişkiler:
+
+```text
+cpu_load      ↔ current_draw    r =  0.9961
+current_draw  ↔ voltage_in      r = -0.9853
+temp_core     ↔ fan_rpm         r =  0.9593
+cpu_load      ↔ temp_core       r = -0.38
+```
+
+`cpu_load` ile `current_draw` arasında güçlü pozitif, `current_draw` ile `voltage_in` arasında güçlü negatif ve `temp_core` ile `fan_rpm` arasında güçlü pozitif korelasyon gözlemlendi.
+
+`cpu_load` ile `temp_core` arasındaki anlık korelasyonun beklenen pozitif ilişkiden farklı olduğu görüldü. Bu durum termal gecikme ile açıklanabilir ve analizde abartılı bir sonuç çıkarılmadı.
+
+#### 🧪 Fault Validation
+
+Day 08'de oluşturulan beş fault tipi dataset üzerinde doğrulandı:
+
+| Fault | Doğrulanan Örnek |
+| :---: | ---: |
+| F1 — `temperature_spike` | 50 |
+| F2 — `voltage_sag` | 40 |
+| F3 — `current_surge` | 50 |
+| F4 — `fan_degradation` | 60 |
+| F5 — `sensor_drift` | 100 |
+
+Tüm fault tipleri başarıyla doğrulandı.
+
+Eğitim datasetinde fault etiketi bulunmadığı doğrulandı.
+
+#### 🔐 Data Leakage Kontrolü
+
+Dataset validation aşamasında veri sızıntısı kontrolü gerçekleştirildi.
+
+Sonuçlar:
+
+```text
+Training fault labels : 0
+Data leakage           : 0
+```
+
+F4 ve F5 rampalarının başlangıcında intensity değerinin yaklaşık 0 olması nedeniyle aynı sequence içerisinde 10 frame sayısal olarak örtüşmektedir. Bu durum etiket sızıntısı olarak değerlendirilmemiş ve raporda belgelenmiştir.
+
+Bu kontrol özellikle sonraki anomaly detection aşaması için kritik olarak ele alınmıştır. Eğitim datasetinin yalnızca normal davranış içermesi korunmuştur.
+
+#### 🔁 Deterministic Validation
+
+Dataset üretiminin tekrar üretilebilirliği de kontrol edildi.
+
+Aynı simulator seed ve aynı parametreler kullanıldığında aynı dataset değerlerinin elde edildiği doğrulandı.
+
+Kullanılan temel seed:
+
+```text
+1337
+```
+
+#### 🧪 Day 10 Self-Test
+
+Day 10 için otomatik validation sistemi oluşturuldu.
+
+Çalıştırma komutu:
+
+```bash
+npm run test:day10
+```
+
+Test sonucu:
+
+```text
+Day 10 Dataset Validation
+-------------------------
+
+Dataset schema: PASS
+Normal dataset: PASS
+Fault dataset: PASS
+
+F1 temperature_spike: PASS
+F2 voltage_sag: PASS
+F3 current_surge: PASS
+F4 fan_degradation: PASS
+F5 sensor_drift: PASS
+
+Statistics: PASS
+Distribution analysis: PASS
+Correlation matrix: PASS
+Correlation symmetry: PASS
+Leakage check: PASS
+Determinism: PASS
+
+All Day 10 checks passed.
+```
+
+#### ✅ Validation Sonuçları
+
+| Kontrol | Sonuç |
+| :--- | :---: |
+| TypeScript Type Check | ✅ Passed |
+| ESLint | ✅ Passed |
+| Production Build | ✅ Passed |
+| Day 08 Self-Test | ✅ Passed |
+| Day 09 Self-Test | ✅ Passed |
+| Day 10 Self-Test | ✅ Passed |
+| Dataset Schema | ✅ Passed |
+| Normal Dataset | ✅ Passed |
+| Fault Dataset | ✅ Passed |
+| F1–F5 Validation | ✅ Passed |
+| Distribution Analysis | ✅ Passed |
+| Correlation Matrix | ✅ Passed |
+| Leakage Check | ✅ Passed |
+| Determinism | ✅ Passed |
+
+Day 10 sonunda telemetry datasetlerinin yapısı, dağılımları، kanallar arası ilişkileri, fault etiketleri, veri sızıntısı ve deterministic üretim özellikleri başarıyla doğrulanmıştır.
+
+
 ---
 
 ## 🧪 Validation
@@ -296,6 +479,7 @@ npm run lint
 npm run build
 npm run test:day08
 npm run test:day09
+npm run test:day10
 ```
 
 Day 08 ve Day 09 sonunda gerçekleştirilen kontroller:
@@ -312,6 +496,12 @@ Day 08 ve Day 09 sonunda gerçekleştirilen kontroller:
 | Day 09 Labels | ✅ Passed |
 | Day 09 Sequence Order | ✅ Passed |
 | Day 09 Determinism | ✅ Passed |
+| Day 10 Self-Test | ✅ Passed |
+| Day 10 Dataset Validation | ✅ Passed |
+| Day 10 Distribution Analysis | ✅ Passed |
+| Day 10 Correlation Matrix | ✅ Passed |
+| Day 10 Leakage Check | ✅ Passed |
+| Day 10 Determinism | ✅ Passed |
 
 ---
 
@@ -328,6 +518,8 @@ Projenin frontend, simulator ve dataset generation tarafında aşağıdaki tekno
 - Git
 - GitHub
 - CSV
+- Dataset Analysis
+- Pearson Correlation
 
 ---
 
@@ -354,6 +546,12 @@ Dataset Recording
        ↓
 CSV Export
        ↓
+Dataset Validation
+       ↓
+Distribution Analysis
+       ↓
+Correlation Analysis
+       ↓
 Anomaly Detection
 ```
 
@@ -365,17 +563,19 @@ Day 09 itibarıyla dataset generation ve labeling altyapısı oluşturulmuş dur
 
 ## 🚀 Sonraki Aşama
 
-Bir sonraki aşamada Day 09 kapsamında oluşturulan labeled telemetry datasetleri kullanılarak anomaly detection yaklaşımının geliştirilmesi planlanmaktadır.
+Day 10 sonunda labeled telemetry datasetlerinin kalite ve bütünlük kontrolleri tamamlanmıştır.
 
-Amaç, normal telemetry davranışları ile fault içeren telemetry davranışları arasındaki farklılıkların analiz edilmesi ve sistem tarafından otomatik olarak tespit edilebilmesidir.
+Bir sonraki aşamada bu doğrulanmış datasetler kullanılarak feature analysis ve anomaly detection çalışmalarına geçilmesi planlanmaktadır.
 
-İlerleyen aşamalarda farklı fault tipleri için telemetry davranışlarının karşılaştırılması, uygun feature'ların belirlenmesi ve anomaly detection modelinin oluşturulması hedeflenmektedir.
+Amaç, normal telemetry davranışının öğrenilmesi ve fault içeren davranışların bu normal modelden sapma olarak tespit edilebilmesidir.
+
+Özellikle eğitim datasetinin yalnızca normal veri içermesi ve test tarafındaki fault örneklerinin eğitim sürecine sızmaması korunacaktır.
 
 ---
 
 ## 📌 Güncel Durum
 
-**Staj Günleri:** 9 / 9 tamamlandı ✅
+**Staj Günleri:** 10 / 10 tamamlandı ✅
 
 **Mevcut Durum:**
 
@@ -399,12 +599,19 @@ CSV Dataset Export         ✅
 Day 09 Self-Test           ✅
 Normal Dataset             ✅
 Fault Dataset              ✅
+Dataset Validation          ✅
+Distribution Analysis       ✅
+Correlation Matrix          ✅
+Leakage Check               ✅
+Deterministic Validation    ✅
 ```
 
 **Bir sonraki hedef:**
 
 ```text
 Labeled Telemetry Dataset
+        ↓
+Dataset Validation
         ↓
 Feature Analysis
         ↓
