@@ -8,48 +8,74 @@ Konu: WebSocket Sunucusu ve Gerçek Zamanlı Telemetri Yayını
 ============================================================
 
 Stajın on birinci gününde SpikeEdge Telemetry projesine gerçek zamanlı
-telemetry verilerinin WebSocket üzerinden yayınlanmasını sağlayan bir
-taşıma katmanı eklenmiştir.
+telemetry verilerinin WebSocket üzerinden yayınlanmasını sağlayan bağımsız
+bir taşıma (transport) katmanı eklendi.
 
-Bu çalışmanın temel amacı mevcut telemetry üretim altyapısını değiştirmeden,
-üretilen TelemetryFrame verilerini bağımsız bir WebSocket sunucusu üzerinden
-birden fazla istemciye gerçek zamanlı olarak ulaştırmaktır.
+Bu çalışmanın temel amacı, mevcut Simulator ve telemetry üretim altyapısını
+değiştirmeden oluşturulan TelemetryFrame verilerini bir WebSocket sunucusu
+üzerinden birden fazla istemciye gerçek zamanlı olarak ulaştırmaktır.
 
-Day 08, Day 09 ve Day 10 çalışmalarında geliştirilen FaultEngine,
-GroundTruth, DatasetRecorder, CSV dataset ve dataset validation yapıları
-değiştirilmemiştir.
+Day 08'de geliştirilen FaultEngine ve GroundTruth altyapıları ile Day 09 ve
+Day 10'da oluşturulan dataset ve validation katmanlarına bu çalışma
+kapsamında müdahale edilmedi.
 
-Aynı şekilde mevcut dashboard pipeline'ı da bu aşamada değiştirilmemiştir.
-
-Bu nedenle Day 11 çalışması yeni bir telemetry üretim sistemi oluşturmak
-yerine mevcut Simulator altyapısının dış dünyaya aktarılmasını sağlayan
-bir transport layer olarak tasarlanmıştır.
+Dashboard'ın mevcut telemetry kaynağı da değiştirilmedi. Bu nedenle Day 11,
+dashboard'a WebSocket entegrasyonu yapmak yerine, sonraki aşamalarda
+kullanılabilecek bağımsız bir gerçek zamanlı telemetry transport katmanı
+oluşturmaktadır.
 
 
 ============================================================
-2. TEMEL AMAÇ
+2. GÜNÜN TEMEL HEDEFİ
 ============================================================
 
-Day 11 kapsamında aşağıdaki hedefler gerçekleştirilmiştir:
+Day 11 kapsamında aşağıdaki hedefler gerçekleştirildi:
 
-- Mevcut Simulator yapısını yeniden kullanmak
-- İkinci bir simulator oluşturmamak
+- Mevcut Simulator altyapısını yeniden kullanmak
+- İkinci bir Simulator oluşturmamak
 - TelemetryFrame verilerini WebSocket üzerinden yayınlamak
 - Birden fazla istemcinin aynı telemetry akışına bağlanabilmesini sağlamak
-- Tüm istemcilere aynı telemetry frame'ini göndermek
-- Telemetry yayın frekansını 10 Hz olarak korumak
-- Client bağlantısı kesildiğinde diğer client'ların yayınını etkilememek
-- Yeni bağlantıların mevcut telemetry sequence akışını bozmamasını sağlamak
-- WebSocket katmanını dashboard'dan bağımsız bir process olarak çalıştırmak
+- Aynı telemetry frame'ini bağlı istemcilere broadcast etmek
+- Telemetry yayın frekansını yaklaşık 10 Hz seviyesinde tutmak
+- Bir istemcinin bağlantısı kesildiğinde stream'in devam ettiğini doğrulamak
+- Sequence akışının korunmasını test etmek
+- WebSocket sunucusunu Next.js uygulamasından bağımsız bir process olarak
+  çalıştırmak
 
 
 ============================================================
-3. MİMARİ YAKLAŞIM
+3. DAY 11'İN PROJEDEKİ YERİ
 ============================================================
 
-Day 11'de yeni bir Simulator oluşturulmamıştır.
+Day 07'ye kadar telemetry üretiminin deterministic ve daha gerçekçi hale
+getirilmesi üzerine çalışıldı.
 
-Mevcut mimari tekrar kullanılmıştır:
+Day 08'de kontrollü fault injection ve Ground Truth eklendi.
+
+Day 09'da bu telemetry akışlarından labeled CSV datasetleri üretildi.
+
+Day 10'da datasetlerin schema, dağılım, korelasyon, leakage ve determinism
+açısından doğrulanması gerçekleştirildi.
+
+Day 11'de ise aynı telemetry üretim kaynağının network üzerinden
+yayınlanabilmesi üzerine çalışıldı.
+
+Özetle:
+
+Day 07 → Deterministic Simulation
+Day 08 → Fault Injection + Ground Truth
+Day 09 → Dataset Generation
+Day 10 → Dataset Validation
+Day 11 → WebSocket Telemetry Transport
+
+
+============================================================
+4. MİMARİ YAKLAŞIM
+============================================================
+
+Day 11'de yeni bir telemetry üretim sistemi oluşturulmadı.
+
+Mevcut simulator yapısı yeniden kullanıldı:
 
 Simulator
     ↓
@@ -64,46 +90,43 @@ TelemetryWebSocketServer
 WebSocket Clients
 
 
-WebSocket katmanı yalnızca taşıma görevini üstlenmektedir.
+WebSocket katmanı telemetry değerlerini hesaplayan bir model değildir.
+Görevi, mevcut TelemetryFrame verilerini network üzerinden taşımaktır.
 
-Telemetry verisinin nasıl üretileceği Simulator tarafından belirlenir.
-WebSocket sunucusu ise bu veriyi bağlı istemcilere yayınlar.
-
-Bu ayrım sayesinde telemetry üretim mantığı ile network transport
-mantığı birbirinden ayrılmıştır.
+Bu ayrım sayesinde telemetry üretim mantığı ile network transport mantığı
+birbirinden ayrılmış oldu.
 
 
 ============================================================
-4. EKLENEN DOSYALAR
+5. EKLENEN DOSYALAR
 ============================================================
 
-Day 11 kapsamında aşağıdaki dosyalar oluşturulmuştur:
+Day 11 kapsamında aşağıdaki dosyalar eklendi:
 
 server/telemetry-ws.js
     Bağımsız Node.js WebSocket server giriş noktasıdır.
 
 src/lib/ws/TelemetryWebSocketServer.ts
-    WebSocket yayın mantığını ve bağlı istemcilere broadcast işlemini
-    gerçekleştiren temel server katmanıdır.
+    WebSocket yayın ve broadcast mantığını içeren server katmanıdır.
 
 src/lib/ws/day11SelfTest.ts
-    Day 11 WebSocket davranışlarını otomatik olarak test eden self-test
+    Day 11 WebSocket davranışlarını otomatik olarak doğrulayan self-test
     altyapısıdır.
 
 scripts/run-day11-self-test.ts
-    Day 11 self-test komutunun çalıştırılmasını sağlayan script dosyasıdır.
+    Day 11 self-test çalıştırma scriptidir.
 
 Gun_11/README.md
-    Günlük staj raporunun GitHub üzerinde tutulduğu dosyadır.
+    Günlük staj çalışmasının ayrıntılı raporudur.
 
 
 ============================================================
-5. WEBSOCKET SERVER
+6. WEBSOCKET SERVER
 ============================================================
 
-WebSocket server bağımsız bir Node.js process olarak yapılandırılmıştır.
+WebSocket server bağımsız bir Node.js process olarak yapılandırıldı.
 
-Çalıştırmak için:
+Başlatmak için:
 
 npm run server:telemetry
 
@@ -112,32 +135,33 @@ Alternatif olarak:
 node server/telemetry-ws.js
 
 
-Server başarılı şekilde başlatıldığında aşağıdaki mesajlar görülmektedir:
+Başarılı başlangıçta alınan çıktı:
 
 [WS] Server started on port 8787
 [WS] Telemetry stream: 10 Hz
 
 
-Server varsayılan olarak aşağıdaki adreste çalışmaktadır:
+Server adresi:
 
 ws://127.0.0.1:8787
 
 
-Port değeri WS_PORT environment variable kullanılarak değiştirilebilir.
+Port varsayılan olarak 8787'dir ve WS_PORT ile değiştirilebilir.
 
 
 ============================================================
-6. PORT TASARIMI
+7. PORT TASARIMI
 ============================================================
 
-WebSocket server için 8787 portu kullanılmıştır.
+WebSocket server için 8787 portu kullanıldı.
 
-Next.js uygulaması ise mevcut 3000 portunda çalışmaya devam etmektedir.
+Next.js uygulaması ise mevcut geliştirme portunda, varsayılan olarak
+3000'de çalışmaya devam edebilir.
 
-Bu iki process'in farklı portlarda tutulmasının amacı frontend uygulaması
-ile telemetry transport katmanının birbirinden ayrılmasıdır.
+Böylece frontend uygulaması ile telemetry transport process'i birbirinden
+ayrılmış olur.
 
-Varsayılan yapı:
+Temel yapı:
 
 Next.js Dashboard
     → http://localhost:3000
@@ -147,66 +171,68 @@ Telemetry WebSocket
 
 
 ============================================================
-7. TELEMETRY FREKANSI
+8. TELEMETRY FREKANSI
 ============================================================
 
-Telemetry yayın frekansı 10 Hz olarak belirlenmiştir.
+WebSocket telemetry stream'i 10 Hz olarak yapılandırıldı.
 
-10 Hz:
+10 Hz yaklaşık olarak:
 
-1 saniyede yaklaşık 10 telemetry frame
+1 saniyede 10 frame
 100 ms'de yaklaşık 1 frame
 
-Bu nedenle WebSocket server yaklaşık her 100 ms'de bir telemetry frame
-üretip bağlı istemcilere yayınlamaktadır.
+anlamına gelir.
 
-60 FPS gibi bir görsel render frekansı kullanılmamıştır.
+Server başlangıç çıktısında da:
 
-Bu karar telemetry sisteminin gerçek veri üretim frekansını korumak ve
-network transport katmanını gereksiz şekilde yüksek frekanslı hale
-getirmemek amacıyla alınmıştır.
+[WS] Telemetry stream: 10 Hz
+
+bilgisi görülmüştür.
+
+Day 11 self-test içerisinde yayın hızının yaklaşık 10 Hz olduğu ayrıca
+kontrol edilmiş ve "~10 Hz rate: PASS" sonucu alınmıştır.
+
+60 FPS telemetry üretimi yapılmamaktadır. 60 FPS daha çok UI render
+kavramıyla ilişkilidir; bu aşamada telemetry transport için hedef frekans
+10 Hz'dir.
 
 
 ============================================================
-8. TELEMETRY PAYLOAD
+9. TELEMETRY PAYLOAD
 ============================================================
 
-WebSocket üzerinden gönderilen veri mevcut TelemetryFrame yapısının
-JSON karşılığıdır.
+WebSocket üzerinden gönderilen payload, mevcut TelemetryFrame yapısının
+JSON temsilidir.
 
-Payload içerisinde temel olarak aşağıdaki alanlar bulunmaktadır:
+Temel TelemetryFrame alanları:
 
 t
-    Telemetry frame zaman bilgisini temsil eder.
+    Frame zaman bilgisini temsil eder.
 
 device
-    Telemetry verisinin hangi cihazdan geldiğini belirtir.
+    Telemetry kaynağını/cihazı belirtir.
 
 seq
-    Frame sequence numarasını temsil eder.
+    Sequence numarasını temsil eder.
 
 ch
     Telemetry channel değerlerini içerir.
 
 
-Önemli nokta:
-
-WebSocket katmanı yeni bir telemetry veri modeli oluşturmamıştır.
-Mevcut TelemetryFrame yapısı doğrudan network üzerinden taşınmaktadır.
+Day 11'in amacı yeni bir telemetry veri modeli oluşturmak değildir.
+Mevcut TelemetryFrame verisi network katmanına taşınmaktadır.
 
 
 ============================================================
-9. MULTI-CLIENT BROADCAST
+10. MULTI-CLIENT BROADCAST
 ============================================================
 
-Day 11'in önemli hedeflerinden biri birden fazla istemcinin aynı telemetry
-stream'e bağlanabilmesidir.
+Day 11'in önemli hedeflerinden biri birden fazla client'ın aynı telemetry
+stream'e bağlanabilmesiydi.
 
-Birden fazla WebSocket client bağlandığında server her client için ayrı
-bir simulator çalıştırmaz.
+Her client için ayrı bir Simulator çalıştırılmadı.
 
-Bunun yerine tek telemetry akışından gelen aynı frame bütün bağlı
-istemcilere broadcast edilir.
+Tek telemetry akışı bağlı client'lara broadcast edilmektedir.
 
 Örnek:
 
@@ -215,90 +241,108 @@ Simulator ───────┼── Client 2
                  └── Client 3
 
 
-Bu yapı sayesinde:
+Bu yaklaşımın avantajları:
 
+- Tek telemetry üretim kaynağı kullanılır.
 - Gereksiz simulator kopyaları oluşturulmaz.
-- Tüm client'lar aynı sequence akışını görür.
-- Telemetry üretimi tek kaynaktan yapılır.
-- Client sayısı arttığında aynı telemetry frame'i paylaşılabilir.
+- Client'lar aynı stream'i paylaşır.
+- Sequence akışının karşılaştırılması kolaylaşır.
 
 
 ============================================================
-10. BAĞLANTI VE DISCONNECT DAVRANIŞI
+11. DISCONNECT VE STREAM CONTINUITY
 ============================================================
 
-WebSocket client bağlantısı kesildiğinde server'ın telemetry üretim
-akışı durdurulmamalıdır.
+WebSocket client bağlantısının kesilmesi telemetry stream'in tamamını
+durdurmamalıdır.
 
-Day 11 self-test içerisinde disconnect continuity kontrolü yapılmıştır.
+Day 11 self-test içerisinde disconnect continuity kontrolü yapıldı.
 
-Bu kontrol sayesinde bir client'ın ayrılmasının ardından telemetry
-stream'in devam ettiği doğrulanmıştır.
+Test sonucu:
 
-Yeni bir client bağlandığında da simulator baştan başlatılmamaktadır.
+Disconnect continuity: PASS
 
-Bu nedenle sequence akışı korunmaktadır.
+
+Bu sonuç, test senaryosunda bir client bağlantısının sonlandırılmasından
+sonra telemetry yayın akışının devam ettiğini doğrulamaktadır.
 
 
 ============================================================
-11. MİMARİ KARAR
+12. SEQUENCE KORUNMASI
 ============================================================
 
-Simulator TypeScript tabanlıdır ve proje içerisinde @/ alias yollarını
-kullanmaktadır.
+Telemetry frame'leri sequence numarası taşımaktadır.
 
-Bu nedenle Simulator'ın doğrudan standart Node.js ile çalıştırılması
-uygun değildir.
+Day 11 self-test sırasında sequence davranışı ayrıca kontrol edildi.
 
-En küçük ve mevcut mimariyle uyumlu çözüm olarak:
+Test sonucu:
+
+Sequence: PASS
+
+
+Bu kontrol telemetry frame'lerinin sıralı bir akış olarak taşındığını
+doğrulamak için kullanıldı.
+
+
+============================================================
+13. MİMARİ KARAR: MEVCUT SIMULATOR'ÜN YENİDEN KULLANILMASI
+============================================================
+
+Mevcut Simulator TypeScript tabanlıdır ve proje içerisinde alias
+kullanımları bulunmaktadır.
+
+Bu nedenle server giriş noktası olan telemetry-ws.js içerisinde mevcut
+Simulator'ü çalıştırabilecek uyumlu bir runtime yaklaşımı kullanıldı.
+
+Temel yaklaşım:
 
 telemetry-ws.js
     ↓
-tsx / CJS
+tsx runtime
     ↓
-existing Simulator
+existing TypeScript Simulator
 
 
-yaklaşımı kullanılmıştır.
-
-Bu çözüm sayesinde mevcut Simulator kodu değiştirilmeden WebSocket
-server tarafından tekrar kullanılabilmiştir.
+Böylece mevcut Simulator kodunun ikinci bir JavaScript/Node implementasyonu
+oluşturulmadan WebSocket server tarafından tekrar kullanılması sağlandı.
 
 
 ============================================================
-12. MEVCUT DASHBOARD İLE İLİŞKİ
+14. DASHBOARD İLE İLİŞKİ
 ============================================================
 
-Day 11 kapsamında dashboard'ın telemetry source yapısı değiştirilmemiştir.
+Day 11 kapsamında dashboard'ın mevcut telemetry source'u WebSocket'e
+taşınmadı.
 
-Dashboard hâlâ mevcut süreç içi telemetry source yapısını kullanmaktadır.
+Dashboard hâlâ mevcut süreç içi telemetry kaynağını kullanmaktadır.
 
-WebSocket server bağımsız bir transport layer olarak eklenmiştir.
+Bu nedenle Day 11'in sonucu:
 
-Bu nedenle Day 11:
-
-Dashboard migration
-veya
-Dashboard WebSocket integration
+"Dashboard WebSocket entegrasyonu tamamlandı"
 
 değildir.
 
-Bu çalışma sonraki günlerde dashboard'ın WebSocket üzerinden gelen
-telemetry verisini kullanabilmesi için gerekli altyapıyı hazırlamaktadır.
+Doğru ifade:
+
+"Dashboard'dan bağımsız WebSocket telemetry transport katmanı oluşturuldu."
+
+
+Bu ayrım önemlidir çünkü client tarafındaki WebSocket entegrasyonu
+bir sonraki aşamalarda ele alınacaktır.
 
 
 ============================================================
-13. SELF-TEST
+15. SELF-TEST KAPSAMI
 ============================================================
 
-Day 11 için otomatik bir WebSocket self-test sistemi oluşturulmuştur.
+Day 11 için otomatik self-test sistemi oluşturuldu.
 
-Test aşağıdaki komut ile çalıştırılmaktadır:
+Çalıştırma komutu:
 
 npm run test:day11
 
 
-Test sırasında aşağıdaki kontroller gerçekleştirilmiştir:
+Test aşağıdaki kontrolleri gerçekleştirdi:
 
 Server module
     WebSocket server modülünün doğru şekilde yüklenmesi.
@@ -307,26 +351,26 @@ Client connect
     WebSocket client'ın server'a bağlanabilmesi.
 
 Telemetry JSON
-    Gelen telemetry mesajının geçerli JSON formatında olması.
+    Alınan telemetry mesajının JSON olarak işlenebilmesi.
 
 Multi-client
     Birden fazla client'ın aynı anda bağlanabilmesi.
 
 Shared broadcast
-    Aynı telemetry frame'inin bağlı client'lara yayınlanması.
+    Ortak telemetry akışının bağlı client'lara yayınlanması.
 
 Sequence
-    Telemetry sequence numaralarının doğru ilerlemesi.
+    Sequence davranışının doğrulanması.
 
 ~10 Hz rate
     Telemetry yayın hızının yaklaşık 10 Hz olması.
 
 Disconnect continuity
-    Bir client bağlantısı kesildiğinde telemetry stream'in devam etmesi.
+    Client bağlantısı sonlandırıldığında stream'in devam etmesi.
 
 
 ============================================================
-14. DAY 11 SELF-TEST SONUCU
+16. DAY 11 SELF-TEST SONUCU
 ============================================================
 
 Çalıştırılan komut:
@@ -334,7 +378,7 @@ Disconnect continuity
 npm run test:day11
 
 
-Test sonucu:
+Alınan sonuç:
 
 Day 11 WebSocket Self-Test
 --------------------------
@@ -350,106 +394,81 @@ Disconnect continuity: PASS
 All Day 11 checks passed.
 
 
+Bu sonuç Day 11 için tanımlanan temel WebSocket transport kontrollerinin
+başarıyla tamamlandığını göstermektedir.
+
+
 ============================================================
-15. MANUEL SERVER TESTİ
+17. MANUEL SERVER TESTİ
 ============================================================
 
-WebSocket server manuel olarak da çalıştırılmıştır.
+WebSocket server ayrıca manuel olarak çalıştırıldı.
 
 Komut:
 
 npm run server:telemetry
 
 
-Terminal çıktısı:
+Alınan terminal çıktısı:
 
 [WS] Server started on port 8787
 [WS] Telemetry stream: 10 Hz
 
 
-Bu çıktı server'ın başarıyla başlatıldığını ve telemetry stream'in
-10 Hz frekansında çalıştığını göstermektedir.
+Bu çıktı server process'inin başlatıldığını ve telemetry stream'in
+10 Hz olarak yapılandırıldığını göstermektedir.
 
 
 ============================================================
-16. VALIDATION
+18. DAY 08–10 İLE UYUMLULUK
 ============================================================
 
-Day 11 kapsamında aşağıdaki validation kontrolleri gerçekleştirilmiştir:
-
-npx tsc --noEmit
-    TypeScript type check.
-
-npm run lint
-    ESLint kontrolü.
-
-npm run build
-    Production build kontrolü.
-
-npm run test:day08
-    Fault injection ve GroundTruth altyapısının korunması.
-
-npm run test:day09
-    Dataset generation ve labeling altyapısının korunması.
-
-npm run test:day10
-    Dataset validation, correlation ve leakage kontrollerinin korunması.
-
-npm run test:day11
-    WebSocket transport katmanının doğrulanması.
-
-
-Day 11 sonuçları:
-
-TypeScript Type Check      ✅ Passed
-ESLint                     ✅ Passed
-Production Build           ✅ Passed
-Day 08 Self-Test           ✅ Passed
-Day 09 Self-Test           ✅ Passed
-Day 10 Self-Test           ✅ Passed
-Day 11 Self-Test           ✅ Passed
-
-
-============================================================
-17. DAY 08–10 İLE UYUMLULUK
-============================================================
-
-Day 11 çalışması önceki günlerde geliştirilen altyapıları değiştirmemiştir.
+Day 11 önceki günlerde oluşturulan telemetry ve dataset altyapılarını
+değiştirmeden üzerine yeni bir transport katmanı eklemektedir.
 
 Day 08:
+
 FaultEngine
 GroundTruth
 F1–F5 fault senaryoları
 
+
 Day 09:
+
 DatasetRecorder
 GroundTruth labeling
 CSV export
 Normal dataset
 Fault dataset
 
+
 Day 10:
+
 Dataset validation
 Distribution analysis
 Correlation matrix
 Leakage check
 Deterministic validation
 
+
 Day 11:
-WebSocket transport
-Real-time broadcast
-Multi-client support
+
+WebSocket server
+Real-time telemetry stream
+Multi-client broadcast
+Sequence validation
+Disconnect continuity
 
 
-Böylece telemetry üretim, fault simulation, dataset generation ve
-network transport katmanları birbirinden ayrılmıştır.
+Bu yapı sayesinde telemetry üretimi, fault simulation, dataset generation,
+dataset validation ve network transport katmanları birbirinden ayrılmıştır.
 
 
 ============================================================
-18. GENEL MİMARİ
+19. GENEL MİMARİ
 ============================================================
 
-Projenin mevcut yapısı aşağıdaki şekilde özetlenebilir:
+Projenin Day 11 sonundaki genel akışı:
 
 PlantModel
     ↓
@@ -477,26 +496,26 @@ TelemetryFrame
                     Client 3
 
 
-Bu mimaride farklı kullanım alanları aynı temel telemetry üretim
-kaynağını kullanmaktadır.
+Bu mimaride farklı kullanım alanları aynı temel telemetry üretim kaynağını
+kullanmaktadır.
 
 
 ============================================================
-19. DAY 11'İN PROJEDEKİ ROLÜ
+20. DAY 11'İN PROJEDEKİ ROLÜ
 ============================================================
 
-Day 11 ile proje yalnızca browser içerisindeki telemetry simulation
-yapısından daha bağımsız bir telemetry streaming mimarisine doğru
-ilerletilmiştir.
+Day 11 ile SpikeEdge Telemetry projesi yalnızca browser içerisindeki
+telemetry simulation yapısından daha bağımsız bir streaming mimarisine
+doğru ilerletildi.
 
-Önceki aşamada:
+Önceki temel kullanım:
 
 Simulator
     ↓
 Dashboard
 
 
-yapısı ağırlıklı olarak süreç içi çalışırken, Day 11 ile birlikte:
+Day 11 ile birlikte ayrıca:
 
 Simulator
     ↓
@@ -505,15 +524,45 @@ WebSocket Transport
 External Clients
 
 
-kullanımı mümkün hale gelmiştir.
+akışı mümkün hale geldi.
 
-Bu yapı ilerleyen günlerde gerçek cihaz, embedded system veya farklı
-client uygulamalarından telemetry alınmasına daha uygun bir temel
+Bu yapı ilerleyen aşamalarda gerçek cihaz, embedded system veya farklı
+client uygulamalarından telemetry alınması için daha uygun bir temel
 oluşturmaktadır.
 
 
 ============================================================
-20. KULLANILAN TEKNOLOJİLER
+21. VALIDATION
+============================================================
+
+Day 11 için doğrudan çalıştırılıp sonucu kaydedilen kontroller:
+
+npm run test:day11
+    ✅ Passed
+
+npm run server:telemetry
+    ✅ Server started on port 8787
+    ✅ Telemetry stream: 10 Hz
+
+
+Projenin önceki aşamalarında kullanılan validation kontrolleri ise
+aşağıdaki komutlardır:
+
+npx tsc --noEmit
+npm run lint
+npm run build
+npm run test:day08
+npm run test:day09
+npm run test:day10
+
+
+Bu raporda Day 11 için kesin olarak kaydedilen self-test sonucu,
+yukarıdaki Day 11 çıktısıdır. Önceki günlerin test sonuçları ise ilgili
+günlerin raporlarında tutulmaktadır.
+
+
+============================================================
+22. KULLANILAN TEKNOLOJİLER
 ============================================================
 
 - Next.js
@@ -531,42 +580,44 @@ oluşturmaktadır.
 
 
 ============================================================
-21. SONUÇ
+23. SONUÇ
 ============================================================
 
 Day 11 sonunda SpikeEdge Telemetry projesine bağımsız bir WebSocket
-telemetry transport katmanı başarıyla eklenmiştir.
+telemetry transport katmanı başarıyla eklendi.
 
-Mevcut Simulator yeniden kullanılmış, ikinci bir telemetry üretim
-kaynağı oluşturulmamıştır.
+Mevcut Simulator yeniden kullanıldı ve ikinci bir telemetry üretim kaynağı
+oluşturulmadı.
 
-Telemetry stream 10 Hz frekansında yayınlanmakta ve birden fazla
-WebSocket client aynı telemetry akışına bağlanabilmektedir.
+Telemetry stream 10 Hz olarak yapılandırıldı ve birden fazla WebSocket
+client'ın aynı telemetry akışına bağlanabildiği doğrulandı.
 
-Self-test sonuçlarına göre:
+Self-test sonucunda:
 
-- Server modülü çalışmaktadır.
-- Client bağlantısı başarılıdır.
-- Telemetry JSON payload doğrulanmıştır.
-- Multi-client desteği çalışmaktadır.
-- Shared broadcast doğrulanmıştır.
-- Sequence sırası korunmaktadır.
-- Yaklaşık 10 Hz yayın hızı doğrulanmıştır.
-- Client disconnect sonrasında stream devam etmektedir.
+- Server module: PASS
+- Client connect: PASS
+- Telemetry JSON: PASS
+- Multi-client: PASS
+- Shared broadcast: PASS
+- Sequence: PASS
+- ~10 Hz rate: PASS
+- Disconnect continuity: PASS
 
-Böylece Day 11'in temel hedefi olan gerçek zamanlı telemetry verilerinin
-mevcut Simulator üzerinden WebSocket ile güvenilir şekilde taşınması
-başarıyla tamamlanmıştır.
+sonuçları alındı.
+
+Böylece Day 11'in temel hedefi olan mevcut Simulator üzerinden telemetry
+verilerinin WebSocket ile gerçek zamanlı olarak taşınması başarıyla
+tamamlandı.
 
 
 ============================================================
-22. BİR SONRAKİ AŞAMA
+24. BİR SONRAKİ AŞAMA
 ============================================================
 
-Bir sonraki aşamada WebSocket transport katmanının client tarafında
-kullanılması planlanmaktadır.
+Hafta 3 planına göre bir sonraki aşama client tarafındaki telemetry
+bağlantısının geliştirilmesidir.
 
-Hedef mimari:
+Hedefler:
 
 WebSocket Server
     ↓
@@ -580,40 +631,40 @@ Automatic Reconnect
     ↓
 Clock Synchronization
     ↓
-Dashboard
+Dashboard Integration
 
 
-Bu aşamada amaç WebSocket bağlantısının güvenilir şekilde yönetilmesi
-ve gerçek zamanlı telemetry verilerinin client tarafında kontrollü
-olarak işlenmesidir.
+Bu aşamada amaç WebSocket bağlantısının client tarafında güvenilir şekilde
+yönetilmesi ve gelen telemetry verilerinin kontrollü bir buffer üzerinden
+işlenmesidir.
 
 
 ============================================================
-23. GÜNCEL DURUM
+25. GÜNCEL DURUM
 ============================================================
 
 Staj Günleri: 11 / 11 tamamlandı ✅
 
 Mevcut durum:
 
-Telemetry Simulator          ✅
-Plant Model                  ✅
-Workload Profiles            ✅
-Deterministic Random         ✅
-Noise Pipeline               ✅
-Live Dashboard               ✅
-Live Telemetry Charts        ✅
-Fault Injection              ✅
-FaultEngine                  ✅
-Ground Truth                 ✅
-Fault Self-Test              ✅
-Deterministic Fault Sim.     ✅
-Fault-aware Telemetry        ✅
-Dataset Recorder             ✅
-Ground Truth Labeling        ✅
-CSV Dataset Export           ✅
-Dataset Validation           ✅
-Distribution Analysis        ✅
+Telemetry Simulator           ✅
+Plant Model                   ✅
+Workload Profiles             ✅
+Deterministic Random          ✅
+Noise Pipeline                ✅
+Live Dashboard                ✅
+Live Telemetry Charts         ✅
+Fault Injection               ✅
+FaultEngine                   ✅
+Ground Truth                  ✅
+Fault Self-Test               ✅
+Deterministic Fault Sim.      ✅
+Fault-aware Telemetry         ✅
+Dataset Recorder              ✅
+Ground Truth Labeling         ✅
+CSV Dataset Export            ✅
+Dataset Validation            ✅
+Distribution Analysis         ✅
 Correlation Matrix            ✅
 Leakage Check                 ✅
 Deterministic Validation      ✅
@@ -625,7 +676,7 @@ WebSocket Self-Test           ✅
 
 
 ============================================================
-24. SONRAKİ HEDEF
+26. SONRAKİ HEDEF
 ============================================================
 
 WebSocket Transport
