@@ -1,54 +1,42 @@
-# 📊 Gün 12 - WebSocket Client ve Telemetry Transport
+Gün 12 - WebSocket Client ve Telemetry Transport
 
-## 📅 Tarih
+Tarih: 14 Ağustos 2026
 
-14 Ağustos 2026
-
-## 📝 Konu
-
+Konu:
 WebSocket Client, Ring Buffer, Backpressure, Automatic Reconnect ve Clock Synchronization
 
----
 
-## 1. Günün Amacı
+1. Günün Amacı
 
-Gün 12 kapsamında, mevcut WebSocket Server üzerine client-side telemetry
-transport katmanı geliştirildi.
+Bugün bir önceki gün oluşturduğum WebSocket Server'ın client tarafını
+geliştirdim.
 
-Amaç; WebSocket üzerinden gelen telemetry verilerinin client tarafında
-güvenilir şekilde alınması, doğrulanması, sınırlı bir buffer içerisinde
-tutulması ve bağlantı problemlerinin yönetilmesidir.
+Amacım server tarafından gönderilen telemetry verilerini client tarafında
+düzgün bir şekilde almak, gelen verileri kontrol etmek, sınırlı bir buffer
+içerisinde tutmak ve bağlantı problemleri olduğunda sistemin tekrar
+bağlanabilmesini sağlamaktı.
 
-Bu kapsamda aşağıdaki bileşenler geliştirildi:
+Bu kapsamda TelemetryClient, Ring Buffer, backpressure, automatic
+reconnect, sequence tracking, clock synchronization ve subscriber
+mekanizmalarını geliştirdim.
 
-- TelemetryClient
-- Ring Buffer
-- Backpressure
-- Automatic Reconnect
-- Sequence Tracking
-- Clock Synchronization
-- Subscriber API
+Bu gün Dashboard'u WebSocket'e bağlamadım. Öncelikle client tarafındaki
+transport yapısını bağımsız olarak geliştirip test ettim.
 
-Dashboard bu aşamada WebSocket'e geçirilmedi.
 
----
+2. TelemetryClient
 
-## 2. TelemetryClient
+Gün 12'nin ana geliştirmesi TelemetryClient oldu.
 
-Day 12'nin ana bileşeni:
+Dosya:
 
-```text
 src/lib/telemetry/TelemetryClient.ts
-```
 
-TelemetryClient, WebSocket üzerinden gelen telemetry verilerini alır ve
-client-side processing katmanına aktarır.
+TelemetryClient'ın görevi WebSocket Server'dan gelen telemetry verilerini
+almak ve client tarafında işlemek.
 
-Client yeni bir Simulator oluşturmaz ve telemetry üretmez.
+Genel akış:
 
-Veri akışı:
-
-```text
 WebSocket Server
        ↓
 TelemetryClient
@@ -58,83 +46,67 @@ Frame Validation
 Ring Buffer
        ↓
 Consumer
-```
 
-Client bağlantı durumunu da takip eder.
 
-Kullanılan temel durumlar:
+Client yeni bir Simulator oluşturmuyor ve kendisi telemetry üretmiyor.
+Mevcut WebSocket stream'ini kullanıyor.
 
-```text
-disconnected
-connecting
-connected
-reconnecting
-closed
-```
+Bağlantı durumlarını da takip edecek şekilde geliştirildi:
 
-Aynı anda birden fazla aktif WebSocket bağlantısının oluşturulması
-engellenmiştir.
+- disconnected
+- connecting
+- connected
+- reconnecting
+- closed
 
----
+Aynı anda gereksiz birden fazla WebSocket bağlantısı oluşturulmasını da
+engelledim.
 
-## 3. TelemetryFrame Validation
 
-WebSocket üzerinden gelen mesajlar doğrudan kullanılmamaktadır.
+3. TelemetryFrame Validation
 
-Öncelikle mesaj JSON olarak parse edilir ve mevcut TelemetryFrame yapısına
-uygunluğu kontrol edilir.
+Server'dan gelen mesajları direkt kullanmak yerine önce JSON olarak
+parse edip mevcut TelemetryFrame yapısına uygun olup olmadığını kontrol
+ettim.
 
-Geçersiz JSON veya geçersiz telemetry frame client'ın çalışmasını
-bozmadan reject edilir ve ilgili sayaçlara eklenir.
+Geçersiz bir JSON veya hatalı telemetry frame geldiğinde client'ın
+çökmesini engelledim. Bu mesajlar reject edilip ilgili sayaçlara
+ekleniyor.
 
-Self-test sonucu:
+Test sonucu:
 
-```text
 Telemetry JSON: PASS
 Frame validation: PASS
-```
 
----
 
-## 4. Ring Buffer
+4. Ring Buffer
 
-Telemetry verilerinin sınırsız şekilde memory içerisinde birikmesini
-önlemek için bounded Ring Buffer kullanıldı.
+Telemetry verilerinin sürekli birikerek memory kullanımını artırmaması
+için bounded Ring Buffer kullandım.
 
-Client buffer kapasitesi:
+Client tarafındaki buffer kapasitesini:
 
-```text
-256 frames
-```
+256 frame
 
-Bu kapasite:
+olarak belirledim.
 
-```text
-DEFAULT_CLIENT_BUFFER_CAPACITY = 256
-```
+Buradaki amaç buffer'ın hiçbir zaman sınırsız şekilde büyümemesini
+sağlamak.
 
-olarak belirlenmiştir.
+Test sonucu:
 
-Ring Buffer'ın temel amacı gerçek zamanlı telemetry akışında memory
-kullanımının kontrol altında tutulmasıdır.
-
-Self-test sonuçları:
-
-```text
 Ring buffer store: PASS
 Bounded capacity: PASS
-```
 
----
 
-## 5. DROP_OLDEST Overflow Policy
+5. DROP_OLDEST
 
-Buffer kapasitesi dolduğunda yeni gelen telemetry frame'in eklenebilmesi
-için en eski frame çıkarılır.
+Buffer tamamen dolduğunda yeni gelen veriyi kaybetmek yerine en eski
+frame'i çıkartıp yeni frame'i ekleyecek şekilde DROP_OLDEST politikasını
+kullandım.
 
-İşlem:
+Mantık:
 
-```text
 Buffer Full
     ↓
 Oldest Frame Removed
@@ -142,27 +114,29 @@ Oldest Frame Removed
 Newest Frame Inserted
     ↓
 droppedFrames++
-```
 
-Bu politika sayesinde daha güncel telemetry verileri buffer içerisinde
-korunur.
+Böylece gerçek zamanlı sistemde mümkün olduğunca güncel telemetry
+verilerini tutmayı amaçladım.
 
-Self-test sonuçları:
+Ayrıca kaç frame'in düşürüldüğünü takip etmek için droppedFrames
+sayacını ekledim.
 
-```text
+Test sonuçları:
+
 Overflow DROP_OLDEST: PASS
 Dropped frame counter: PASS
-```
 
----
 
-## 6. Backpressure
+6. Backpressure
 
-Client tarafında buffer kullanım oranı takip edilmektedir.
+Client'ın telemetry verilerini tüketme hızı gelen verilerden daha düşük
+olursa buffer'ın dolabileceğini göz önünde bulundurdum.
 
-Backpressure seviyeleri:
+Bu nedenle buffer kullanım oranını takip eden basit bir backpressure
+mekanizması oluşturdum.
 
-```text
+Kullandığım seviyeler:
+
 NORMAL
 utilization < 70%
 
@@ -171,11 +145,10 @@ utilization >= 70%
 
 FULL
 size === capacity
-```
 
-Buffer FULL olduğunda `DROP_OLDEST` politikası uygulanır.
+Buffer FULL olduğunda DROP_OLDEST uygulanıyor.
 
-Client istatistiklerinde aşağıdaki bilgiler tutulmaktadır:
+Ayrıca aşağıdaki bilgileri istatistiklerde tutuyorum:
 
 - buffer size
 - buffer capacity
@@ -183,157 +156,131 @@ Client istatistiklerinde aşağıdaki bilgiler tutulmaktadır:
 - dropped frame count
 - backpressure level
 
-Bu yapı sayesinde consumer yavaşladığında buffer'ın sınırsız şekilde
-büyümesi engellenmiştir.
+Test sonucu:
 
-Self-test:
-
-```text
 Backpressure stats: PASS
-```
 
----
 
-## 7. Automatic Reconnect
+7. Automatic Reconnect
 
-WebSocket bağlantısı beklenmedik şekilde kapandığında client otomatik
-olarak yeniden bağlanmaktadır.
+WebSocket bağlantısı beklenmedik şekilde kapanırsa client'ın kendisini
+otomatik olarak tekrar bağlamasını sağladım.
 
-Reconnect için bounded exponential backoff kullanılmıştır:
+Reconnect sırasında bounded exponential backoff kullandım:
 
-```text
 250 ms
 500 ms
 1000 ms
 2000 ms
 4000 ms
 5000 ms
-```
 
-Maksimum reconnect gecikmesi:
+Maksimum bekleme süresini 5000 ms ile sınırlandırdım.
 
-```text
-5000 ms
-```
+Bağlantı başarılı olduğunda reconnect attempt sayacı tekrar
+sıfırlanıyor.
 
-olarak sınırlandırılmıştır.
+Test sonuçları:
 
-Başarılı bağlantı sonrasında reconnect attempt counter sıfırlanmaktadır.
-
-Self-test:
-
-```text
 Automatic reconnect: PASS
 Duplicate reconnect timer: PASS
-```
 
----
 
-## 8. Intentional Disconnect
+8. Intentional Disconnect
 
-Uygulama tarafından bilinçli olarak `disconnect()` çağrıldığında otomatik
-reconnect yapılmamaktadır.
+Burada önemli bir ayrım yaptım.
 
-Davranış:
+Eğer uygulama bilinçli olarak disconnect() çağırırsa client'ın tekrar
+bağlanmasını istemiyorum.
 
-```text
+Bu nedenle:
+
 Intentional disconnect
         ↓
 No reconnect
 
+Beklenmedik bağlantı kaybında ise:
+
 Unexpected connection loss
         ↓
 Automatic reconnect
-```
 
-Self-test:
+şeklinde çalışıyor.
 
-```text
+Test sonucu:
+
 Intentional disconnect: PASS
-```
 
----
 
-## 9. Sequence Tracking
+9. Sequence Tracking
 
-Mevcut TelemetryFrame içerisindeki `seq` alanı client tarafından takip
-edilmektedir.
+Mevcut TelemetryFrame içerisindeki seq değerini client tarafında takip
+ettim.
 
-Sequence gap'leri gözlemlenmekte ve istatistiklerde tutulmaktadır.
+Böylece frame'lerin sırasını ve olası sequence gap durumlarını
+gözlemleyebiliyorum.
 
-Sequence gap otomatik olarak fault olarak kabul edilmemektedir.
+Sequence gap durumunu doğrudan fault olarak kabul etmedim. Çünkü bir gap
+network problemi, reconnect veya buffer overflow gibi farklı nedenlerden
+oluşabilir.
 
-Bunun nedeni bir gap'in network problemi, reconnect veya buffer overflow
-gibi farklı nedenlerden kaynaklanabilmesidir.
+Test sonucu:
 
-Self-test:
-
-```text
 Sequence tracking: PASS
-```
 
----
 
-## 10. Clock Synchronization
+10. Clock Synchronization
 
-Client ve server arasındaki yaklaşık zaman farkını hesaplamak için
-hafif bir clock offset mekanizması geliştirildi.
+Client ile server arasındaki yaklaşık zaman farkını görebilmek için
+basit bir clock offset hesabı ekledim.
 
-Kullanılan yaklaşım:
+Kullandığım yaklaşım:
 
-```text
 offset ≈ frame.t - clientReceiveTime
-```
 
-Son 16 örnek kullanılarak rolling mean hesaplanmaktadır.
+Tek bir değere güvenmek yerine son 16 örneği kullanarak rolling mean
+hesapladım.
 
-```text
-Clock samples = 16
-```
+Bu yapı gerçek bir NTP sistemi değil. Network latency, jitter ve
+processing delay ayrı ayrı hesaplanmıyor.
 
-Bu yapı gerçek bir NTP protokolü değildir.
+Amaç bu aşamada client ile server arasındaki yaklaşık zaman farkını
+takip edebilmek.
 
-Network latency, jitter ve processing delay ayrı ayrı hesaplanmamaktadır.
+Test sonucu:
 
-Self-test:
-
-```text
 Clock offset: PASS
-```
 
----
 
-## 11. Subscriber API
+11. Subscriber API
 
-TelemetryClient içerisinde yeni telemetry frame'lerini dinleyebilecek
-subscriber mekanizması oluşturuldu.
+TelemetryClient içerisine yeni gelen telemetry frame'lerini dinlemek
+için subscriber mekanizması ekledim.
 
-Temel yapı:
+Yapı genel olarak:
 
-```text
 TelemetryClient
       ↓
 Subscriber
       ↓
 TelemetryFrame
-```
 
-Bu yapı React'e bağımlı değildir ve ilerleyen aşamada Dashboard'un
-TelemetryClient'a bağlanmasını kolaylaştıracaktır.
+şeklinde çalışıyor.
 
-Self-test:
+Bu yapıyı React'e bağımlı oluşturmadım. Böylece ilerleyen aşamada
+Dashboard'u TelemetryClient'a bağlamak daha kolay olacak.
 
-```text
+Test sonucu:
+
 Subscriber: PASS
-```
 
----
 
-## 12. Client Statistics
+12. Client Statistics
 
-TelemetryClient aşağıdaki istatistikleri takip etmektedir:
+Client'ın durumunu takip edebilmek için çeşitli istatistikler ekledim.
 
-```text
+Takip edilen bilgiler:
+
 receivedFrames
 acceptedFrames
 rejectedFrames
@@ -347,58 +294,55 @@ lastSequence
 clockOffsetMs
 clockSyncSamples
 connectionState
-```
 
-Bu bilgiler ilerleyen aşamada telemetry bağlantısının ve buffer
-durumunun Dashboard üzerinde gösterilmesi için kullanılabilir.
+Bu bilgileri ilerleyen aşamada Dashboard üzerinde bağlantı durumu,
+buffer durumu ve telemetry sağlığı gibi bilgileri göstermek için
+kullanabilirim.
 
----
 
-## 13. Eklenen Dosyalar
+13. Eklenen Dosyalar
 
-Gün 12 kapsamında aşağıdaki dosyalar oluşturuldu:
+Gün 12'de aşağıdaki dosyaları ekledim:
 
-```text
 src/lib/telemetry/TelemetryClient.ts
 src/lib/telemetry/day12SelfTest.ts
 scripts/run-day12-self-test.ts
 Gun_12/README.md
-```
 
----
 
-## 14. Değiştirilen Dosyalar
+14. Değiştirdiğim Dosyalar
 
-Aşağıdaki dosyalarda Gün 12 için değişiklik yapıldı:
+Gün 12 kapsamında:
 
-```text
 src/lib/telemetry/FrameHistoryBuffer.ts
 package.json
 README.md
-```
 
-`FrameHistoryBuffer.ts` içerisinde `push()` işleminin `DROP_OLDEST`
-sonucunda bir frame'in düşürülüp düşürülmediğini bildirebilmesi sağlandı.
+dosyalarında değişiklik yaptım.
 
-`package.json` içerisine aşağıdaki test script'i eklendi:
+FrameHistoryBuffer içerisinde push() işleminin DROP_OLDEST sonucunda
+bir frame'in düşürülüp düşürülmediğini bildirecek şekilde düzenleme
+yaptım.
 
-```bash
+package.json içerisine:
+
 npm run test:day12
-```
 
----
+script'ini ekledim.
 
-## 15. Day 12 Self-Test
+Root README içerisinde de Day 12 durumunu güncelledim.
 
-Self-test aşağıdaki komut ile çalıştırıldı:
 
-```bash
+15. Day 12 Self-Test
+
+Day 12 için özel bir self-test hazırladım.
+
+Çalıştırdığım komut:
+
 npm run test:day12
-```
 
 Sonuç:
 
-```text
 Day 12 Telemetry Client Self-Test
 ---------------------------------
 Client module: PASS
@@ -418,103 +362,91 @@ Clock offset: PASS
 Subscriber: PASS
 
 All Day 12 checks passed.
-```
 
-Tüm Day 12 self-test kontrolleri başarıyla tamamlandı.
+Bütün Day 12 self-test kontrolleri başarıyla tamamlandı.
 
----
 
-## 16. Validation
+16. Validation
 
-Day 12 sonunda aşağıdaki kontroller PASS sonucuyla tamamlandı:
+Day 12 sonunda aşağıdaki kontroller de başarılı oldu:
 
-| Kontrol | Sonuç |
-| :--- | :---: |
-| TypeScript Type Check | ✅ PASS |
-| ESLint | ✅ PASS |
-| Production Build | ✅ PASS |
-| Day 08 Self-Test | ✅ PASS |
-| Day 09 Self-Test | ✅ PASS |
-| Day 10 Self-Test | ✅ PASS |
-| Day 11 Self-Test | ✅ PASS |
-| Day 12 Self-Test | ✅ PASS |
+TypeScript Type Check: PASS
+ESLint: PASS
+Production Build: PASS
+Day 08 Self-Test: PASS
+Day 09 Self-Test: PASS
+Day 10 Self-Test: PASS
+Day 11 Self-Test: PASS
+Day 12 Self-Test: PASS
 
----
+Kullandığım temel komutlar:
 
-## 17. Dashboard Entegrasyonu
+npx tsc --noEmit
+npm run lint
+npm run build
+npm run test:day08
+npm run test:day09
+npm run test:day10
+npm run test:day11
+npm run test:day12
 
-Gün 12 kapsamında Dashboard WebSocket'e geçirilmedi.
 
-Dashboard halen mevcut süreç içi `TelemetryService` yapısını kullanmaktadır.
+17. Dashboard Entegrasyonu
 
-Bu günün amacı öncelikle WebSocket client transport katmanını bağımsız
-olarak geliştirmek ve test etmektir.
+Bu gün Dashboard'u WebSocket'e bağlamadım.
 
-Dashboard entegrasyonu bir sonraki aşamada gerçekleştirilecektir.
+Dashboard halen mevcut süreç içi TelemetryService yapısını kullanıyor.
 
----
+Öncelikle TelemetryClient'ın bağımsız olarak çalıştığından ve bağlantı,
+buffer, reconnect ve telemetry işlemlerinin doğru olduğundan emin olmak
+istedim.
 
-## 18. Sınırlamalar
+Dashboard entegrasyonunu sonraki aşamaya bıraktım.
 
-### Clock Synchronization
 
-Clock offset yaklaşık bir tahmindir.
+18. Sınırlamalar
 
-Gerçek bir NTP veya benzeri zaman senkronizasyon protokolü uygulanmamıştır.
+Clock synchronization şu anda yaklaşık bir offset hesabıdır. Gerçek bir
+NTP veya benzeri zaman senkronizasyon protokolü kullanılmadı.
 
-### Node WebSocket Client
+Client tarafında Node ws paketi kullanılıyor. Henüz React browser
+WebSocket API'sine bağlanmadı.
 
-Client tarafında Node `ws` paketi kullanılmaktadır.
+Sequence gap'leri takip ediliyor ancak otomatik olarak fault olarak
+sınıflandırılmıyor.
 
-Henüz React browser WebSocket API'sine bağlanmamıştır.
+Geçersiz JSON veya TelemetryFrame mesajları reject ediliyor ve
+istatistiklerde tutuluyor. Client'ın çökmesine neden olmuyor.
 
-### Sequence Gaps
 
-Sequence gap'leri takip edilmektedir ancak otomatik olarak fault olarak
-sınıflandırılmamaktadır.
+19. Sonuç
 
-### Malformed Messages
+Bugünkü çalışma sonunda WebSocket Server'ın client tarafındaki transport
+katmanını tamamladım.
 
-Geçersiz JSON veya TelemetryFrame mesajları reject edilmekte ve
-istatistiklerde sayılmaktadır.
+TelemetryClient ile server'a bağlanmayı, gelen telemetry verilerini
+doğrulamayı ve bunları 256 frame kapasiteli Ring Buffer içerisinde
+tutmayı sağladım.
 
-Bu mesajlar client'ın crash olmasına neden olmamaktadır.
+Buffer dolduğunda DROP_OLDEST kullanılıyor ve düşürülen frame sayısı
+takip ediliyor.
 
----
+Ayrıca backpressure durumu, automatic reconnect, sequence tracking,
+clock offset ve subscriber mekanizmalarını ekledim.
 
-## 19. Sonuç
+Day 12 self-test içerisindeki bütün kontroller PASS oldu.
 
-Gün 12 sonunda SpikeEdge Telemetry projesinin WebSocket client-side
-transport katmanı tamamlandı.
+TypeScript, ESLint, production build ve önceki günlerin self-test
+kontrolleri de başarılı şekilde tamamlandı.
 
-Bu kapsamda:
 
-- TelemetryClient geliştirildi.
-- TelemetryFrame validation eklendi.
-- 256 frame kapasiteli bounded Ring Buffer oluşturuldu.
-- DROP_OLDEST overflow policy uygulandı.
-- Backpressure seviyeleri oluşturuldu.
-- Automatic reconnect geliştirildi.
-- Reconnect için bounded exponential backoff kullanıldı.
-- Duplicate reconnect timer engellendi.
-- Intentional disconnect davranışı eklendi.
-- Sequence tracking geliştirildi.
-- Clock offset hesaplama eklendi.
-- Subscriber API oluşturuldu.
-- Client statistics oluşturuldu.
+20. Bir Sonraki Aşama
 
-Day 12 self-test içerisindeki tüm kontroller başarıyla tamamlandı.
+Bir sonraki aşamada TelemetryClient'ı Dashboard ile entegre etmeyi
+planlıyorum.
 
----
+Hedeflediğim yapı:
 
-## 20. Bir Sonraki Aşama
-
-Bir sonraki aşamada TelemetryClient'ın Dashboard ile entegre edilmesi
-planlanmaktadır.
-
-Hedeflenen yapı:
-
-```text
 WebSocket Server
        ↓
 TelemetryClient
@@ -528,32 +460,9 @@ Live Charts
 Connection State
        ↓
 Backpressure State
-```
 
-Bu aşamada WebSocket üzerinden gelen telemetry verilerinin Dashboard
-tarafından kullanılması ve bağlantı ile buffer durumlarının kullanıcıya
-gösterilmesi hedeflenmektedir.
+Böylece WebSocket üzerinden gelen gerçek telemetry akışı Dashboard
+tarafında kullanılabilecek ve bağlantı ile buffer durumu kullanıcıya
+gösterilebilecek.
 
----
-
-## 21. Gün 12 Durumu
-
-```text
-TelemetryClient              ✅
-WebSocket Connection         ✅
-TelemetryFrame Validation    ✅
-Ring Buffer                  ✅
-Bounded Capacity             ✅
-DROP_OLDEST                  ✅
-Backpressure                 ✅
-Automatic Reconnect          ✅
-Reconnect Protection         ✅
-Intentional Disconnect      ✅
-Sequence Tracking            ✅
-Clock Offset                 ✅
-Subscriber API               ✅
-Client Statistics             ✅
-Day 12 Self-Test              ✅
-```
-
-**Gün 12 tamamlandı. ✅**
+Gün 12 tamamlandı. ✅
