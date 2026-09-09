@@ -26,7 +26,7 @@ Real-time telemetry, Digital Twin, and AI-based anomaly detection prototype.
 | 18 | TensorFlow.js model export | ☑️ |
 | 19 | Browser-side TF.js inference | ☑️ |
 | 20 | Live telemetry + Reconstruction MSE | ☑️ |
-| 21 | MSE threshold ve anomaly boundary | ⬜ |
+| 21 | MSE threshold ve anomaly boundary | ☑️ |
 
 ## Current Architecture
 
@@ -46,20 +46,8 @@ Ring Buffer
             ↓
       Reconstruction MSE
             ↓
+      Frozen P99.5 Threshold
+            ↓
+       NORMAL / ANOMALY
+            ↓
         AI Monitor
-```
-
-## Current Status
-
-**Days 01–20 completed.**
-
-Current focus: **Autoencoder-based anomaly detection and threshold selection.**
-
-Detailed daily reports are available inside:
-
-```text
-Gun_01/
-Gun_02/
-...
-Gun_20/
-```
