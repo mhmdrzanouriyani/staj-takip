@@ -170,18 +170,41 @@ flowchart LR
 
 ---
 
-## 📊 GitHub İstatistikleri
+## 📊 GitHub Aktivitesi
 
 <div align="center">
 
-<img height="165" src="https://github-readme-stats.vercel.app/api?username=mhmdrzanouriyani&show_icons=true&hide_border=true&title_color=2563eb&icon_color=7c3aed&count_private=true" alt="GitHub istatistikleri" />
-<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=mhmdrzanouriyani&layout=compact&hide_border=true&title_color=2563eb&langs_count=8" alt="En çok kullanılan diller" />
+[![Takipçi](https://img.shields.io/github/followers/mhmdrzanouriyani?style=for-the-badge&logo=github&logoColor=white&label=Takip%C3%A7i&labelColor=181717&color=2563eb)](https://github.com/mhmdrzanouriyani?tab=followers)
+[![Depolar](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Fusers%2Fmhmdrzanouriyani&query=%24.public_repos&style=for-the-badge&logo=github&logoColor=white&label=Genel%20depo&labelColor=181717&color=7c3aed)](https://github.com/mhmdrzanouriyani?tab=repositories)
+[![GitHub'da](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Fusers%2Fmhmdrzanouriyani&query=%24.created_at&style=for-the-badge&logo=github&logoColor=white&label=GitHub%27da&labelColor=181717&color=0ea5e9)](https://github.com/mhmdrzanouriyani)
 
-<br><br>
+<br>
 
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=mhmdrzanouriyani&hide_border=true&ring=2563eb&fire=7c3aed&currStreakLabel=2563eb" alt="Katkı serisi" />
+<img src="https://streak-stats.demolab.com/?user=mhmdrzanouriyani&locale=tr&hide_border=true&date_format=j%20M%5B%20Y%5D&background=FFFFFF00&ring=2563EB&fire=7C3AED&currStreakLabel=2563EB&sideLabels=64748B&dates=94A3B8" alt="Katkı serisi" />
 
 </div>
+
+<details>
+<summary><b>📈 Ayrıntılı istatistik kartlarını da eklemek istersen</b></summary>
+
+<br>
+
+`github-readme-stats` projesinin **ortak (public) sunucusu** GitHub API kotasını tüm
+kullanıcılarla paylaştığı için sık sık `503` döner ve kart kırık görünür. Kalıcı çözüm,
+servisin kendi kopyanı Vercel'e ücretsiz kurmaktır (≈5 dakika):
+
+1. https://github.com/anuraghazra/github-readme-stats deposunu fork'la
+2. https://vercel.com üzerinde fork'unu içe aktar → **Deploy**
+3. Oluşan adresi aşağıdaki gibi kullan:
+
+```html
+<img height="165" src="https://SENIN-ADRESIN.vercel.app/api?username=mhmdrzanouriyani&show_icons=true&hide_border=true&locale=tr&title_color=2563eb&icon_color=7c3aed&count_private=true" />
+<img height="165" src="https://SENIN-ADRESIN.vercel.app/api/top-langs/?username=mhmdrzanouriyani&layout=compact&hide_border=true&locale=tr&title_color=2563eb&langs_count=8" />
+```
+
+Kendi kopyanda kota yalnızca sana ait olduğu için kartlar kırılmaz.
+
+</details>
 
 ---
 
