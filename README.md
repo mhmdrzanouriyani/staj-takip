@@ -1,658 +1,202 @@
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                         SPIKEEDGE
-             INDUSTRIAL DIGITAL TWIN & AI ANOMALY DETECTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                         FINAL PROJECT LOG
-                              GÜN 30
-
-                    FINAL CHECK • DEMO • DELIVERY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  FINAL CHECK • DEMO • DELIVERY • HANDOFF
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Gün 30, projenin yalnızca kod olarak değil; çalıştırılabilir,
-ölçülebilir, dokümante edilmiş ve sunulabilir bir sistem olarak
-tamamlandığı final aşamasıdır.
-
-Bugünün amacı yeni bir özellik eklemekten çok, önceki 29 günde
-oluşturulan bütün parçaları tek bir sistem altında son kez kontrol
-etmek ve projeyi teslimata hazır hale getirmektir.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 01 │ FINAL SİSTEMİN BÜTÜNÜ                                           │
-╰──────────────────────────────────────────────────────────────────────╯
-
-                         ┌───────────────────────┐
-                         │  TELEMETRY SIMULATOR  │
-                         └───────────┬───────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │   WEBSOCKET SERVER    │
-                         └───────────┬───────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │   TELEMETRY CLIENT    │
-                         └───────────┬───────────┘
-                                     │
-                                     ▼
-                         ┌───────────────────────┐
-                         │      RING BUFFER      │
-                         └───────────┬───────────┘
-                                     │
-                         ┌───────────┴───────────┐
-                         │                       │
-                         ▼                       ▼
-                ┌────────────────┐      ┌──────────────────┐
-                │ FIXED THRESHOLD│      │ 64-FRAME WINDOW  │
-                └────────────────┘      └────────┬─────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │   FROZEN μ / σ      │
-                                      │    NORMALIZATION     │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │   AUTOENCODER /     │
-                                      │    TENSORFLOW.JS     │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │ RECONSTRUCTION MSE   │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │    EWMA  α = 0.2     │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │ FROZEN P99.5 τ       │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │    3-OF-5 POLICY     │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │ NORMAL / PENDING /   │
-                                      │       ACTIVE         │
-                                      └──────────┬──────────┘
-                                                 │
-                                                 ▼
-                                      ┌─────────────────────┐
-                                      │      AI MONITOR      │
-                                      └─────────────────────┘
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 02 │ TELEMETRY FINAL CHECK                                           │
-╰──────────────────────────────────────────────────────────────────────╯
-
-Final telemetry pipeline:
-
-    Simulator
-        ↓
-    WebSocket
-        ↓
-    Dashboard
-        ↓
-    Ring Buffer
-
-Kontrol edilen kanallar:
-
-  • temp_core
-  • temp_ambient
-  • voltage_in
-  • current_draw
-  • fan_rpm
-  • cpu_load
-
-Telemetry akışının dashboard üzerinde gerçek zamanlı olarak
-güncellenmesi final sistem kontrolünün temel adımlarından biridir.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 03 │ DIGITAL TWIN / 3D VIEWER                                    │
-╰──────────────────────────────────────────────────────────────────────╯
-
-Digital Twin, fiziksel endüstriyel cihazın dijital ortamda
-görselleştirilmiş temsilidir.
-
-Final sistemde telemetry verileri iki farklı amaçla kullanılmaktadır:
-
-    TELEMETRY
-       │
-       ├──────────────► DASHBOARD CHARTS
-       │
-       ├──────────────► DIGITAL TWIN / 3D VIEWER
-       │
-       └──────────────► AI ANOMALY PIPELINE
-
-Three.js WebGL:
-    → 3D rendering ve Digital Twin
-
-TensorFlow.js:
-    → Browser-side AI inference
-
-Bu iki teknoloji farklı görevler için kullanılmaktadır.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 04 │ FINAL AI PIPELINE                                             │
-╰──────────────────────────────────────────────────────────────────────╯
-
-                         64 FRAMES
-                             │
-                             ▼
-                         6 CHANNELS
-                             │
-                             ▼
-                         384 VALUES
-                             │
-                             ▼
-                       FROZEN μ / σ
-                             │
-                             ▼
-                        AUTOENCODER
-                             │
-                             ▼
-                  RECONSTRUCTION MSE
-                             │
-                             ▼
-                         EWMA α=.2
-                             │
-                             ▼
-                       P99.5 THRESHOLD
-                             │
-                             ▼
-                         3-OF-5
-                             │
-                             ▼
-                  ┌──────────┼──────────┐
-                  ▼          ▼          ▼
-                NORMAL    PENDING    ACTIVE
+<div align="center">
 
+<!-- ─────────────  BAŞLIK  ───────────── -->
 
-MODEL:
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=26&duration=3200&pause=900&color=2563EB&center=true&vCenter=true&width=700&lines=Merhaba%2C+ben+Mohammadreza+Nouriyani;Bilgisayar+M%C3%BChendisli%C4%9Fi+%C3%B6%C4%9Frencisi;End%C3%BCstriyel+AI+%26+Real-Time+Web+Sistemleri" alt="Mohammadreza Nouriyani" />
 
-    384
-     │
-     ▼
-    Dense(64, ReLU)
-     │
-     ▼
-    Dense(16, ReLU)
-     │
-     ▼
-    Dense(64, ReLU)
-     │
-     ▼
-    Dense(384, Linear)
+### Bilgisayar Mühendisliği Öğrencisi · Bursa Teknik Üniversitesi
 
+**Endüstriyel AI · Real-Time Web Sistemleri · Backend & Altyapı**
 
-MODEL PARAMETRELERİ:
+<br>
 
-    Telemetry Rate       : 10 Hz
-    Window               : 64 frame
-    Window Duration      : ≈ 6.4 sec
-    Channels             : 6
-    Input Size           : 384
-    Latent Size          : 16
-    Loss                 : MSE
-    Normalization        : Frozen μ / σ
-    Threshold            : P99.5
-    EWMA α               : 0.2
-    Alarm Policy         : 3-of-5
-    Model Size           : ≈ 212 KB
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/)
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mhmdrzanouriyani)
+[![YouTube](https://img.shields.io/badge/MohixCode-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/@mohixcodee)
+[![E-posta](https://img.shields.io/badge/E--posta-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mohammadrezanouriyani@gmail.com)
 
+<img src="https://komarev.com/ghpvc/?username=mhmdrzanouriyani&style=flat-square&color=2563eb&label=Profil+g%C3%B6r%C3%BCnt%C3%BClenme" alt="profil görüntülenme" />
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 05 │ FINAL THRESHOLD                                               │
-╰──────────────────────────────────────────────────────────────────────╯
+</div>
 
-Frozen threshold:
+---
 
-    τ = 0.025459141133630285
+## 👋 Hakkımda
 
-Threshold, normal reconstruction MSE dağılımının P99.5
-seviyesinden belirlenmiştir.
+Bursa Teknik Üniversitesi Bilgisayar Mühendisliği öğrencisiyim. İlgi alanım, **makine öğrenmesini
+gerçek zamanlı sistemlerin içine yerleştirmek**: sensör verisini toplayan, görselleştiren ve
+üzerinde anlamlı karar üreten uçtan uca uygulamalar geliştiriyorum.
 
-Calibration:
+Çalışma biçimimi üç ilke belirliyor:
 
-    Normal Windows : 737
-    Above τ        : 4
-    Calibration FPR: ≈ 0.543%
+- **Ölçülebilirlik** — Bir sistemin "çalıştığını" söylemek yetmez; precision, recall, latency ve
+  bellek kullanımı ile ölçerim.
+- **Şeffaflık** — Projelerimin sınırlamalarını sonuçlarıyla aynı yerde belgelerim.
+- **Devredilebilirlik** — Projeyi devralan kişinin kurabileceği, çalıştırabileceği ve mimariyi
+  anlayabileceği dokümantasyon yazarım.
 
-ÖNEMLİ:
+> 🎯 Şu anda **endüstriyel yazılım, gömülü AI ve backend geliştirme** alanlarında staj ve
+> proje iş birliklerine açığım.
 
-Bu sonuç bağımsız held-out validation sonucu değildir.
+---
 
-Threshold aynı normal calibration seti üzerinden belirlendiği
-için sonuç bu sınırlama ile raporlanmıştır.
+## 🏭 Öne Çıkan Proje — SpikeEdge
 
+<div align="center">
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 06 │ FINAL ALARM POLICY                                            │
-╰──────────────────────────────────────────────────────────────────────╯
+### ⚡ Industrial Digital Twin & AI Anomaly Detection
 
-EWMA:
+**Endüstriyel telemetriyi gerçek zamanlı izleyen, Digital Twin üzerinde görselleştiren ve
+anomaliyi tamamen tarayıcı içinde tespit eden uçtan uca prototip.**
 
-    α = 0.2
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-049EF4?style=flat-square&logo=threedotjs&logoColor=white)
+![Keras](https://img.shields.io/badge/Keras-D00000?style=flat-square&logo=keras&logoColor=white)
+![WebAssembly](https://img.shields.io/badge/WASM-654FF0?style=flat-square&logo=webassembly&logoColor=white)
 
-Alarm kuralı:
+</div>
 
-    Son 5 window'un en az 3'ünde
-    EWMA > τ
-    ───────────────────────────
-             ↓
-          ACTIVE
+```mermaid
+flowchart LR
+    S["📡 Telemetry<br/>10 Hz · 6 kanal"] --> W["🔌 WebSocket"]
+    W --> B["🗂 Ring Buffer"]
+    B --> T["🧊 Digital Twin<br/>Three.js"]
+    B --> P["🪟 64-Frame Window<br/>384 değer"]
+    P --> AE["🧠 Autoencoder<br/>TF.js / WASM Worker"]
+    AE --> E["〰️ EWMA + P99.5 τ"]
+    E --> A["🚨 3-of-5 Alarm<br/>NORMAL / PENDING / ACTIVE"]
 
-Durumlar:
+    classDef a fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef b fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    classDef c fill:#fee2e2,stroke:#dc2626,color:#7f1d1d
+    class S,W,B,T a
+    class P,AE,E b
+    class A c
+```
 
-    [ NORMAL ]  →  EWMA ≤ τ
+### Teknik kararlar ve sonuçları
 
-    [ PENDING ] →  EWMA > τ
-                  fakat 3-of-5 henüz tamamlanmadı
+| Karar | Gerekçe | Ölçülen sonuç |
+|---|---|---|
+| Sabit eşik yerine **64 frame'lik davranışsal pencere** | Tek kanallı eşik, kanallar arası korelasyon bozulmasını göremiyor | Recall **%53.3 → %76.4** |
+| **EWMA (α = 0.2) + 3-of-5 kalıcılık** politikası | Anlık gürültünün kalıcı alarma dönüşmesini engellemek | Precision **%100**, F1 **%86.6** |
+| Inference'ın **Web Worker + WASM**'a taşınması | 3D render döngüsü ile GPU'da yarışmasın, UI thread bloklanmasın | Warm P50 **0.457 ms** |
+| **Dondurulmuş μ / σ ve eşik** | Model çalışma anında kendi anomalisine adapte olmasın | Calibration FPR **≈ %0.543** |
 
-    [ ACTIVE ]  →  3-of-5 koşulu sağlandı
+<div align="center">
 
-Amaç:
+| Model | Latent | Boyut | Throughput | Alarm F1 |
+|:-:|:-:|:-:|:-:|:-:|
+| Dense Autoencoder `384 → 64 → 16 → 64 → 384` | 16 (24:1 sıkıştırma) | ≈ 212 KB | ≈ 1686 inference/s | **%86.6** |
 
-Tek bir anlık threshold aşımının doğrudan kalıcı alarm
-oluşturmasını azaltmak ve daha kararlı bir alarm davranışı
-sağlamaktır.
+</div>
 
+> **Şeffaflık notu:** Sistem simülasyon verisi kullanır; saha testi yapılmamıştır ve eşik
+> kalibrasyonu bağımsız held-out sete dayanmaz. Bu sınırlamalar proje dokümantasyonunda
+> sonuçlarla birlikte açıkça raporlanmıştır.
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 07 │ FINAL EXPERIMENTAL RESULTS                                   │
-╰──────────────────────────────────────────────────────────────────────╯
+<div align="center">
 
-FIXED THRESHOLD
-──────────────────────────────────────────────────────────────────────
+**→ [Projeyi ve tam teknik dokümantasyonu incele](https://github.com/mhmdrzanouriyani)**
 
-    Precision   → 100%
-    Recall      → 53.3%
-    F1 Score    → 69.6%
+</div>
 
+---
 
-AUTOENCODER — MSE > τ
-──────────────────────────────────────────────────────────────────────
+## 🛠 Teknoloji Yığını
 
-    Precision   → 99.8%
-    Recall      → 76.6%
-    F1 Score    → 86.6%
+<table>
+<tr><td valign="top" width="50%">
 
+**Diller**
 
-AUTOENCODER + EWMA + 3-OF-5
-──────────────────────────────────────────────────────────────────────
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black)
+![C](https://img.shields.io/badge/C-A8B9CC?style=flat-square&logo=c&logoColor=black)
+![SQL](https://img.shields.io/badge/SQL-4479A1?style=flat-square&logo=postgresql&logoColor=white)
 
-    Precision   → 100%
-    Recall      → 76.4%
-    F1 Score    → 86.6%
+**Yapay Zekâ & Veri**
 
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)
+![Keras](https://img.shields.io/badge/Keras-D00000?style=flat-square&logo=keras&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white)
 
-Bu sonuçlar mevcut evaluation protocol kapsamında elde edilmiştir.
+</td><td valign="top" width="50%">
 
+**Frontend & 3D**
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 08 │ PERFORMANCE BENCHMARK                                        │
-╰──────────────────────────────────────────────────────────────────────╯
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Three.js](https://img.shields.io/badge/Three.js-049EF4?style=flat-square&logo=threedotjs&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
 
-NODE CPU BENCHMARK
+**Backend & Altyapı**
 
-    Model Load          → 23.18 ms
-    First Inference     → 14.43 ms
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat-square&logo=redis&logoColor=white)
+![Celery](https://img.shields.io/badge/Celery-37814A?style=flat-square&logo=celery&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)
 
-    Warm P50            → 0.457 ms
-    Warm P90            → 0.988 ms
-    Warm P95            → 1.221 ms
+</td></tr>
+</table>
 
-    Approx. Throughput  → 1686 inference/sec
+---
 
-    Heap Delta          → +7.7 MiB
-    RSS                  → ≈ 180 MiB
+## 📦 Diğer Çalışmalar
 
+| Proje | Açıklama | Teknolojiler |
+|---|---|---|
+| **CloudDeploy** | Self-hosted VPS yönetim paneli — sunucu provizyonu, uzaktan komut yürütme, kimlik doğrulama | FastAPI · PostgreSQL · Redis · Celery · AsyncSSH · Docker · JWT + TOTP |
+| **NetProbe++** | Python ile güvenilir UDP dosya transfer platformu — paket kaybı ve yeniden iletim yönetimi | Python · Socket · Bilgisayar Ağları |
+| **MohixCode** | Farsça programlama ve yapay zekâ eğitim içerikleri — müfredat, ders materyalleri ve video üretimi | Next.js · İçerik üretimi · Teknik anlatım |
+| **AI Agent çalışmaları** | ReAct tabanlı araştırma ajanı, Telegram otomasyon ajanı ve masaüstü otomasyon sistemi | FastAPI · SSE · LLM API'leri · Telethon |
 
-NOT:
+---
 
-Bu ölçümler Node CPU ortamında gerçekleştirilmiştir.
+## 🎓 Eğitim & Sertifikasyon
 
-Aşağıdaki browser-specific ölçümler bu aşamada yapılmamıştır:
+| Kurum / Alan | Ayrıntı |
+|---|---|
+| 🏛 **Bursa Teknik Üniversitesi** | Bilgisayar Mühendisliği — lisans |
+| 🌐 **Cisco CCNA** | ITN (Introduction to Networks) — Modül 1–3 çalışması |
+| ⚡ **Elektrik Devreleri** | Devre temelleri, mesh ve node analizi |
+| 🗣 **Diller** | Farsça (ana dil) · Türkçe · İngilizce |
 
-    ✕ Gerçek browser WASM latency
-    ✕ WebGL vs WASM hız karşılaştırması
-    ✕ Gerçek FPS etkisi
-    ✕ Uzun süreli browser memory profiling
+---
 
-Bu nedenle Node benchmark sonuçları doğrudan gerçek browser
-performansı olarak sunulmamıştır.
+## 📊 GitHub İstatistikleri
 
+<div align="center">
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 09 │ BROWSER-SIDE AI                                             │
-╰──────────────────────────────────────────────────────────────────────╯
+<img height="165" src="https://github-readme-stats.vercel.app/api?username=mhmdrzanouriyani&show_icons=true&hide_border=true&title_color=2563eb&icon_color=7c3aed&count_private=true" alt="GitHub istatistikleri" />
+<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=mhmdrzanouriyani&layout=compact&hide_border=true&title_color=2563eb&langs_count=8" alt="En çok kullanılan diller" />
 
-Final browser-side inference yapısı:
+<br><br>
 
-    MAIN THREAD
-         │
-         │ 384-value window
-         ▼
-    ANOMALY WORKER
-         │
-         ▼
-    TENSORFLOW.JS
-         │
-         ▼
-    WASM BACKEND
-         │
-         ▼
-    AUTOENCODER
-         │
-         ▼
-    RECONSTRUCTION MSE
-         │
-         ▼
-    MAIN THREAD
-         │
-         ├── EWMA
-         ├── Threshold
-         ├── Alarm Policy
-         └── UI State
+<img src="https://github-readme-streak-stats.herokuapp.com/?user=mhmdrzanouriyani&hide_border=true&ring=2563eb&fire=7c3aed&currStreakLabel=2563eb" alt="Katkı serisi" />
 
-Web Worker kullanımı ile AI hesaplamalarının UI rendering
-işlemlerinden ayrılması hedeflenmiştir.
+</div>
 
+---
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 10 │ FINAL TEST CHECKLIST                                          │
-╰──────────────────────────────────────────────────────────────────────╯
+## 📬 İletişim
 
-    [✓] TypeScript check
-    [✓] ESLint
-    [✓] Production build
-    [✓] Application HTTP check
-    [✓] Day14 validation
-    [✓] Day15 evaluation
-    [✓] Day16 normalization / window validation
-    [✓] Day17 model validation
-    [✓] Day18 TF.js export
-    [✓] Day19 inference validation
-    [✓] Day20 live inference
-    [✓] Day21 threshold calibration
-    [✓] Day22 alarm policy
-    [✓] Day26 final evaluation
-    [✓] Day27 performance benchmark
+Proje iş birliği, staj veya teknik bir soru için çekinmeden yazabilirsiniz.
 
+<div align="center">
 
-╭──────────────────────────────────────────────────────────────────────╮
-│ 11 │ FINAL REPOSITORY STRUCTURE                                  │
-╰──────────────────────────────────────────────────────────────────────╯
+[![E-posta](https://img.shields.io/badge/mohammadrezanouriyani@gmail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white)](mailto:mohammadrezanouriyani@gmail.com)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/)
 
-    src/
-    ├── components/
-    ├── lib/
-    └── workers/
-        └── anomaly.worker.ts
+<br>
 
-    config/
-        └── device-map.ts
+<sub>💡 <i>"Bir sistemin değeri, çalışmasıyla değil; nasıl çalıştığının ölçülebilir ve
+anlatılabilir olmasıyla belirlenir."</i></sub>
 
-    server/
-        └── telemetry-ws.js
-
-    sim/
-
-    ml/
-
-    public/
-        └── models/
-            └── ae-v1/
-
-    docs/
-
-
-Repository içerisinde gereksiz build ve dependency dosyalarının
-bulunmamasına dikkat edilmiştir.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 12 │ MODEL ARTIFACT                                                │
-╰──────────────────────────────────────────────────────────────────────╯
-
-    public/models/ae-v1/
-
-        ├── model.json
-        └── group1-shard1of1.bin
-
-    Model Size ≈ 212 KB
-
-Model browser-side TensorFlow.js inference için kullanılmaktadır.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 13 │ DOCUMENTATION FINAL CHECK                                     │
-╰──────────────────────────────────────────────────────────────────────╯
-
-Final dokümantasyon kapsamında:
-
-    [✓] README
-    [✓] Architecture documentation
-    [✓] Technical decisions
-    [✓] AI pipeline documentation
-    [✓] Model information
-    [✓] Threshold information
-    [✓] Alarm policy
-    [✓] Evaluation notes
-    [✓] Installation instructions
-    [✓] Run instructions
-    [✓] Academic report structure
-    [✓] Known limitations
-    [✓] Demo flow
-
-
-Dokümantasyonun temel amacı:
-
-    "Projeyi alan başka bir kişi,
-     sistemi kurabilsin,
-     çalıştırabilsin,
-     mimariyi anlayabilsin
-     ve sonuçları tekrar inceleyebilsin."
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 14 │ FINAL DEMO SCENARIO                                           │
-╰──────────────────────────────────────────────────────────────────────╯
-
-    STEP 01  → Projeyi başlat
-    STEP 02  → Telemetry server'ı çalıştır
-    STEP 03  → Dashboard'u aç
-    STEP 04  → Live telemetry akışını göster
-    STEP 05  → Telemetry grafiklerini göster
-    STEP 06  → Digital Twin / 3D Viewer'ı göster
-    STEP 07  → AI Monitor'e geç
-    STEP 08  → Reconstruction MSE'yi göster
-    STEP 09  → EWMA değerini göster
-    STEP 10  → Frozen threshold'u göster
-    STEP 11  → Son 5 window bilgisini göster
-    STEP 12  → NORMAL / PENDING / ACTIVE durumlarını açıkla
-    STEP 13  → Fixed Threshold vs Autoencoder sonuçlarını karşılaştır
-    STEP 14  → Performans sonuçlarını göster
-    STEP 15  → Sınırlamaları açıkla
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 15 │ PROJECT SUCCESS CRITERIA                                     │
-╰──────────────────────────────────────────────────────────────────────╯
-
-    ✓ Real-time telemetry
-    ✓ WebSocket communication
-    ✓ Digital Twin visualization
-    ✓ 3D industrial model
-    ✓ Browser-side anomaly detection
-    ✓ Autoencoder
-    ✓ Reconstruction MSE
-    ✓ Frozen threshold
-    ✓ EWMA
-    ✓ Alarm persistence
-    ✓ Web Worker
-    ✓ WASM backend support
-    ✓ Performance benchmark
-    ✓ Experimental evaluation
-    ✓ Technical documentation
-    ✓ Academic report foundation
-    ✓ Demo-ready workflow
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 16 │ IMPORTANT LIMITATIONS                                        │
-╰──────────────────────────────────────────────────────────────────────╯
-
-Final teslimat sırasında aşağıdaki sınırlamalar açıkça
-kayıt altına alınmıştır:
-
-    • Sistem simülasyon verisi kullanmaktadır.
-    • Gerçek endüstriyel cihaz üzerinde saha testi yapılmamıştır.
-    • F1–F4 fault burst'leri 64 frame'den kısa olduğu için
-      pure-window değerlendirmesi yapılamamıştır.
-    • F5 performansı sınırlıdır.
-    • Threshold calibration bağımsız held-out normal test değildir.
-    • Browser WASM performansı ayrıntılı olarak ölçülmemiştir.
-    • WebGL ve WASM arasında ölçümlü benchmark yapılmamıştır.
-    • Uzun süreli browser memory profiling yapılmamıştır.
-    • Repository Git geçmişi bu çalışma ortamında doğrulanmamıştır.
-
-Bu noktaların açıkça belirtilmesi, final raporun daha şeffaf
-ve teknik olarak savunulabilir olmasını sağlamaktadır.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 17 │ FUTURE WORK                                                   │
-╰──────────────────────────────────────────────────────────────────────╯
-
-Projenin ilerleyen aşamalarında:
-
-    → Gerçek endüstriyel cihaz entegrasyonu
-    → Gerçek saha telemetry verileri
-    → Bağımsız held-out validation dataset
-    → Daha fazla fault tipi
-    → Daha uzun fault senaryoları
-    → Gelişmiş channel attribution
-    → Browser performance profiling
-    → Uzun süreli reliability testleri
-    → Gelişmiş alarm history
-    → Model update / retraining pipeline
-
-gibi çalışmalar yapılabilir.
-
-
-╭──────────────────────────────────────────────────────────────────────╮
-│ 18 │ FINAL PROJECT SUMMARY                                       │
-╰──────────────────────────────────────────────────────────────────────╯
-
-SpikeEdge, 30 günlük geliştirme süreci sonunda:
-
-        INDUSTRIAL TELEMETRY
-                +
-          DIGITAL TWIN
-                +
-        ANOMALY DETECTION
-                +
-          ALARM SYSTEM
-                +
-       EXPERIMENTAL EVALUATION
-                +
-          DOCUMENTATION
-
-bileşenlerini tek bir prototip içerisinde birleştirmiştir.
-
-
-FINAL FLOW:
-
-    Telemetry
-       ↓
-    Real-Time Pipeline
-       ↓
-    Digital Twin
-       ↓
-    64-Frame Behavioral Window
-       ↓
-    Autoencoder
-       ↓
-    Reconstruction MSE
-       ↓
-    EWMA
-       ↓
-    P99.5 Threshold
-       ↓
-    3-of-5 Alarm
-       ↓
-    AI Monitor
-       ↓
-    Evaluation
-       ↓
-    Documentation
-       ↓
-    DELIVERY
-
-
-╔══════════════════════════════════════════════════════════════════════╗
-║                                                                      ║
-║                     🏆 FINAL PROJECT STATUS                         ║
-║                                                                      ║
-║                 PROJECT READY FOR DEMO & DELIVERY                   ║
-║                                                                      ║
-║        ✔ DEVELOPED    ✔ TESTED    ✔ EVALUATED    ✔ DOCUMENTED      ║
-║                                                                      ║
-║                 INDUSTRIAL DIGITAL TWIN + AI                        ║
-║                                                                      ║
-╚══════════════════════════════════════════════════════════════════════╝
-
-
-30 GÜNLÜK ÇALIŞMANIN SONU
-
-Gün 30 ile birlikte geliştirme sürecinin final aşaması
-tamamlanmıştır.
-
-Proje başlangıcındaki gerçek zamanlı telemetry fikri;
-
-    TELEMETRY
-        ↓
-    DIGITAL TWIN
-        ↓
-    ANOMALY DETECTION
-        ↓
-    ALARM
-        ↓
-    EVALUATION
-        ↓
-    DOCUMENTATION
-
-şeklinde genişletilerek çalışan, ölçülebilir ve sunulabilir
-bir endüstriyel prototipe dönüştürülmüştür.
-
-En önemli kazanım yalnızca sistemin çalışması değil;
-sistemin nasıl çalıştığının, hangi kararların alındığının,
-hangi sonuçların ölçüldüğünün ve hangi noktaların hâlâ
-geliştirilmesi gerektiğinin açık şekilde belgelenmiş olmasıdır.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-                         SPIKEEDGE — FINAL
-                  INDUSTRIAL DIGITAL TWIN & AI
-                         ANOMALY DETECTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-                         END OF DAY 30
+</div>
